@@ -12,7 +12,7 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue flowableMessageQueue() {
-        return new Queue("paymentGateway.queue", true);
+        return new Queue("outflowPayment.queue", true);
     }
 
     @Bean
@@ -24,6 +24,6 @@ public class RabbitMQConfig {
     public Binding binding(Queue queue, DirectExchange exchange) {
         return BindingBuilder.bind(queue)
                 .to(exchange)
-                .with("paymentGateway.routingKey");
+                .with("outflowPayment.routingKey");
     }
 }

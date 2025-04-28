@@ -21,7 +21,7 @@ public class FlowableMessageListener {
         );
     }*/
     @RabbitListener(
-            queues = "payment-queue",
+            queues = "outflowPayment.queue",
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handlePaymentMessage(Map<String, Object> variables) {
