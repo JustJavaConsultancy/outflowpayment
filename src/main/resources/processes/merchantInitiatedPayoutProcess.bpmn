@@ -4,7 +4,7 @@
     <extensionElements>
       <design:stencilid><![CDATA[BPMNDiagram]]></design:stencilid>
       <design:creationdate><![CDATA[2025-04-24T10:01:49.521Z]]></design:creationdate>
-      <design:modificationdate><![CDATA[2025-04-27T14:01:37.213Z]]></design:modificationdate>
+      <design:modificationdate><![CDATA[2025-04-30T10:13:05.622Z]]></design:modificationdate>
     </extensionElements>
     <serviceTask id="FormTask_3" name="Register Beneficiary" flowable:expression="${transferService.registerBeneficiary(execution)}">
       <extensionElements>
@@ -218,13 +218,13 @@ Perform AML/KYC/risk screening.</documentation>
       <extensionElements>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
       </extensionElements>
-      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${balance.getBool=="true"}]]></conditionExpression>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${balance}]]></conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="SequenceFlow_42" sourceRef="Exclusive_Databased_Gateway_17" targetRef="EndNoneEvent_35">
       <extensionElements>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
       </extensionElements>
-      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${balance.getBool=="false"}]]></conditionExpression>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${balance}]]></conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="SequenceFlow_33" sourceRef="Exclusive_Databased_Gateway_26" targetRef="HttpTask_32">
       <extensionElements>

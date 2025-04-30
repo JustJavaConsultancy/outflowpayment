@@ -54,7 +54,7 @@ public class TransferService {
         }
         return valid;
     }*/
-    public Map<String, String> checkBalance(DelegateExecution execution) {
+    public Boolean checkBalance(DelegateExecution execution) {
         Map<String, String> bool = new HashMap<>();
         System.out.println("Check balance===" + execution.getVariable("balance"));
         System.out.println("Check amount===" + execution.getVariable("amountToSend"));
@@ -62,16 +62,12 @@ public class TransferService {
         BigDecimal amount = new BigDecimal(String.valueOf(execution.getVariable("amountToSend")));
         System.out.println("Check balance===" +balance +" "+ execution.getVariables());
         if(balance.compareTo(amount) > 0) {
-            bool.put("bool", "true");
-            System.out.println(bool);
-            return bool;
+            return true;
         }
         else {
-            bool.put("bool", "false");
-            System.out.println(bool);
-            return bool;
+            return false;
         }
-//        return "true";
+//        return true;
     }
 
     public void debitAccount(DelegateExecution execution) {

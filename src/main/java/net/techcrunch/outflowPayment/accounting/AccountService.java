@@ -13,9 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service("accountingService")
 public class AccountService {
@@ -81,17 +80,22 @@ public class AccountService {
         System.out.println("The execution in merchantPaymentJournalEntry=== "+variables);
         Map<String,Object> transactionDetails = objectMapper.convertValue(variables, Map.class);
         System.out.println("This is the transactionDetails::: "+ transactionDetails);
-
+        Map<String, Object> transactionDetailss = new HashMap<>();
+        transactionDetailss.put("merchantId", loginUser);
+        int ref = ThreadLocalRandom.current().nextInt(1,1001);
         TransactionDTO transactionDTO=TransactionDTO.builder()
                 .amount(new BigDecimal(execution.getVariable("amountToSend").toString()))
                 .beneficiaryAccount("Payment Gateway Account")
-                .reference(execution.getVariable("confirmCode").toString())
-                .externalReference(execution.getVariable("confirmCode").toString())
+//                .reference(execution.getVariable("confirmCode").toString())
+//                .externalReference(execution.getVariable("confirmCode").toString())
+                .reference(String.valueOf(ref))
+                .externalReference(String.valueOf(ref))
                 .paymentType(PaymentType.OUTFLOW)
                 .channel("CHANNEL")
                 .sourceAccount(execution.getVariable("accNumber").toString())
                 .transactionOwner(loginUser)
-                .transactionDetails(transactionDetails)
+//                .transactionDetails(transactionDetails)
+                .transactionDetails(transactionDetailss)
                 .status(Status.PAID)
                 .build();
         Transaction transaction=transactionService.createEntity(transactionDTO);
