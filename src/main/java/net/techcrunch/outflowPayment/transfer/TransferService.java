@@ -29,8 +29,7 @@ public class TransferService {
                 .bankName((String) execution.getVariable("bankName"))
                 .code((String) execution.getVariable("confirmCode"))
                 .build();
-        Beneficiary beneficiary = beneficiaryMapper.toEntity(beneficiaryDTO);
-        beneficiaryRepository.save(beneficiary);
+        beneficiaryRepository.save(beneficiaryMapper.toEntity(beneficiaryDTO));
         System.out.println("Registers a new beneficiary===" + execution.getVariables());
     }
 

@@ -34,6 +34,9 @@ public class TransactionService {
 //                .map(transaction -> transactionMapper.toDto(transaction))
 //                .orElseThrow(NotFoundException::new);
     }
+     public TransactionDTO findByReference(final String reference) {
+        return transactionMapper.toDto(transactionRepository.findTransactionByReference(reference));
+    }
 
     public TransactionDTO create(final TransactionDTO transactionDTO) {
         Transaction transaction = transactionMapper.toEntity(transactionDTO);

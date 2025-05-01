@@ -44,7 +44,7 @@ public class AccountService {
     public AccountDTO getByCode(String code) {
         return accountMapper.toDto(accountRepository.findByCode(code).orElseThrow());
     }
-    public Transaction customerPaymentJournalEntry(DelegateExecution execution) {
+    /*public Transaction customerPaymentJournalEntry(DelegateExecution execution) {
         Map<String,Object> variables = execution.getVariables();
         System.out.println("The execution in customerPaymentJournalEntry=== "+variables);
         Map<String, Object> invoiceMap = objectMapper.convertValue(variables.get("invoice"), Map.class);
@@ -73,7 +73,7 @@ public class AccountService {
         //Second Entry charge 10%
         charge10(payableAccount, getPGIncomeAccount(),transaction);
         return transaction;
-    }
+    }*/
     public Transaction merchantPaymentJournalEntry(DelegateExecution execution) {
         String loginUser = execution.getVariable("sub").toString();
         Map<String,Object> variables = execution.getVariables();
