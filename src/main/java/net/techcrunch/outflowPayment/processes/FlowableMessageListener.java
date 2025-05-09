@@ -10,23 +10,14 @@ import java.util.Map;
 public class FlowableMessageListener {
     @Autowired
     private RuntimeService runtimeService;
-    /*@RabbitListener(
-            queues = "flowable.message.queue",
-            containerFactory = "rabbitListenerContainerFactory"
-    )
-    public void handleMessage(Map<String,Object> variables) {
-        runtimeService.startProcessInstanceByMessage(
-                "outflowPaymentMessage", // Matches BPMN message name
-                variables
-        );
-    }*/
+
     @RabbitListener(
             queues = "outflowPayment.queue",
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handlePaymentMessage(Map<String, Object> variables) {
         runtimeService.startProcessInstanceByMessage(
-                "outflowPaymentMessage", // Matches BPMN message name
+                "outflowPaymentMessage",
                 variables
         );
     }
