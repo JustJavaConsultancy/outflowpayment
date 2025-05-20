@@ -16,9 +16,10 @@ public class FlowableMessageListener {
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handlePaymentMessage(Map<String, Object> variables) {
-        runtimeService.startProcessInstanceByMessage(
-                "outflowPaymentMessage",
-                variables
-        );
+        System.out.println("\nReceived variables: " + variables);
+//        runtimeService.startProcessInstanceByMessage(
+//                "outflowPaymentMessage",
+//                variables
+//        );
     }
 }
