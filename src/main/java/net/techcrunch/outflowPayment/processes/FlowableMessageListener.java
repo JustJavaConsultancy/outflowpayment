@@ -17,9 +17,9 @@ public class FlowableMessageListener {
     )
     public void handlePaymentMessage(Map<String, Object> variables) {
         System.out.println("\nReceived variables: " + variables);
-//        runtimeService.startProcessInstanceByMessage(
-//                "outflowPaymentMessage",
-//                variables
-//        );
+        runtimeService.startProcessInstanceByMessage(
+                "outflowPaymentMessage",
+                variables
+        );
     }
 }
