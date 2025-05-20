@@ -12,7 +12,7 @@ public class FlowableMessageListener {
     private RuntimeService runtimeService;
 
     @RabbitListener(
-            queues = "outflowPayment.queue",
+            queues = "${message.ouflowPayment.queue}",
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handlePaymentMessage(Map<String, Object> variables) {
