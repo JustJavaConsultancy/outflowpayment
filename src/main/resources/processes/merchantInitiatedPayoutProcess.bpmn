@@ -3,8 +3,8 @@
   <process id="merchantInitiatedPayoutProcess" name="Merchant-initiated Payout Process" isExecutable="true" flowable:candidateStarterGroups="flowableUser">
     <extensionElements>
       <design:stencilid><![CDATA[BPMNDiagram]]></design:stencilid>
-      <design:creationdate><![CDATA[2025-04-24T10:01:49.521Z]]></design:creationdate>
-      <design:modificationdate><![CDATA[2025-04-30T10:13:05.622Z]]></design:modificationdate>
+      <design:creationdate><![CDATA[2025-05-20T12:39:37.556Z]]></design:creationdate>
+      <design:modificationdate><![CDATA[2025-05-20T12:45:57.901Z]]></design:modificationdate>
     </extensionElements>
     <serviceTask id="FormTask_3" name="Register Beneficiary" flowable:expression="${transferService.registerBeneficiary(execution)}">
       <extensionElements>
@@ -186,6 +186,7 @@ Perform AML/KYC/risk screening.</documentation>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${beneficiaryName!='Select'}]]></conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="SequenceFlow_10" name="yes" sourceRef="Exclusive_Databased_Gateway_1" targetRef="ServiceTask_9">
       <extensionElements>
@@ -224,7 +225,7 @@ Perform AML/KYC/risk screening.</documentation>
       <extensionElements>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
       </extensionElements>
-      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${balance}]]></conditionExpression>
+      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!balance}]]></conditionExpression>
     </sequenceFlow>
     <sequenceFlow id="SequenceFlow_33" sourceRef="Exclusive_Databased_Gateway_26" targetRef="HttpTask_32">
       <extensionElements>
@@ -302,7 +303,7 @@ Perform AML/KYC/risk screening.</documentation>
       <bpmndi:BPMNShape bpmnElement="Exclusive_Databased_Gateway_17" id="BPMNShape_Exclusive_Databased_Gateway_17">
         <omgdc:Bounds height="40.0" width="40.0" x="1280.0" y="118.0"></omgdc:Bounds>
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds height="18.0" width="81.0" x="1259.5" y="96.0"></omgdc:Bounds>
+          <omgdc:Bounds height="18.0" width="81.0" x="1259.0" y="96.0"></omgdc:Bounds>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape bpmnElement="Exclusive_Databased_Gateway_26" id="BPMNShape_Exclusive_Databased_Gateway_26">
