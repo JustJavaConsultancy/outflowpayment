@@ -1,10 +1,12 @@
 package net.techcrunch.outflowPayment.processes;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.flowable.engine.RuntimeService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Map;
 @Component
 public class FlowableMessageListener {
@@ -15,11 +17,20 @@ public class FlowableMessageListener {
             queues = "${message.ouflowPayment.queue}",
             containerFactory = "rabbitListenerContainerFactory"
     )
-    public void handlePaymentMessage(Map<String, Object> variables) {
+    public void handlePaymentMessage(List<Map<String, Object>> variables) {
         System.out.println("\nReceived variables: " + variables);
-        runtimeService.startProcessInstanceByMessage(
-                "outflowPaymentMessage",
-                variables
-        );
+        int i = 1;
+        for (Map<String, Object> variable : variables) {
+
+            ObjectMapper mapper = new ObjectMapper();
+            Map transferDTO = mapper.convertValue(variable.get("TransferDTO"), Map.class);
+            if (transferDTO.get("recipientName") != null)
+                transferDTO.put("beneficiaryName", transferDTO.get("recipientName"));
+            runtimeService.startProcessInstanceByMessage(
+                    "outflowPaymentMessage",
+                    transferDTO
+            );
+            System.out.println("\nDone processing variable: " + i++ +"\n");
+        }
     }
 }

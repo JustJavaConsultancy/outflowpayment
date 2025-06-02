@@ -82,7 +82,7 @@ public class AccountService {
         System.out.println("This is the transactionDetails::: "+ transactionDetails);
         Map<String, Object> transactionDetailss = new HashMap<>();
         transactionDetailss.put("merchantId", loginUser);
-        int ref = ThreadLocalRandom.current().nextInt(1,1001);
+        long ref = ThreadLocalRandom.current().nextLong(1000000000L,9999999999L);
         TransactionDTO transactionDTO=TransactionDTO.builder()
                 .amount(new BigDecimal(execution.getVariable("amountToSend").toString()))
                 .beneficiaryAccount("Payment Gateway Account")
