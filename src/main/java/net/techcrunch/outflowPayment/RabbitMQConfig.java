@@ -14,9 +14,12 @@ public class RabbitMQConfig {
     @Value("${message.outflowPayment-routing-key}")
     String outflowRoutingKey;
 
+    @Value("${message.ouflowPayment.queue}")
+    private String outflowQueue;
+
     @Bean
     public Queue flowableMessageQueue() {
-        return new Queue("outflowPayment.queue", true);
+        return new Queue(outflowQueue, true);
     }
 
     @Bean

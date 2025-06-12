@@ -260,19 +260,6 @@ Perform AML/KYC/risk screening.</documentation>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
       </extensionElements>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_43" name="false" sourceRef="Exclusive_Databased_Gateway_35" targetRef="EndNoneEvent_26">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-        <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
-      </extensionElements>
-      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!isRecurrent}]]></conditionExpression>
-    </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_44" sourceRef="Exclusive_Databased_Gateway_35" targetRef="IntermediateTimerEvent_35">
-      <extensionElements>
-        <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
-      </extensionElements>
-      <conditionExpression xsi:type="tFormalExpression"><![CDATA[${isRecurrent}]]></conditionExpression>
-    </sequenceFlow>
     <sequenceFlow id="SequenceFlow_2" sourceRef="startnoneevent1" targetRef="Exclusive_Databased_Gateway_1">
       <extensionElements>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
