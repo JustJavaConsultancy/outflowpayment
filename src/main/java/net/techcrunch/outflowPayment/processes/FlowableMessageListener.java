@@ -26,10 +26,14 @@ public class FlowableMessageListener {
             Map transferDTO = mapper.convertValue(variable.get("TransferDTO"), Map.class);
             if (transferDTO.get("recipientName") != null)
                 transferDTO.put("beneficiaryName", transferDTO.get("recipientName"));
+            if (transferDTO.get("duration") != null){
+                transferDTO.put("isRecurrent", true);
+            }
             runtimeService.startProcessInstanceByMessage(
                     "outflowPaymentMessage",
                     transferDTO
             );
+            System.out.println("TransferDTO: " + transferDTO);
             System.out.println("\nDone processing variable: " + i++ +"\n");
         }
     }

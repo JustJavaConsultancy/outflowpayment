@@ -53,7 +53,7 @@ public class TransferService {
         }
         return valid;
     }*/
-    public Boolean checkBalance(DelegateExecution execution) {
+    public void checkBalance(DelegateExecution execution) {
         Map<String, String> bool = new HashMap<>();
         System.out.println("Check balance===" + execution.getVariable("balance"));
         System.out.println("Check amount===" + execution.getVariable("amountToSend"));
@@ -61,10 +61,10 @@ public class TransferService {
         BigDecimal amount = new BigDecimal(String.valueOf(execution.getVariable("amountToSend")));
         System.out.println("Check balance===" +balance +" "+ execution.getVariables());
         if(balance.compareTo(amount) > 0) {
-            return true;
+            execution.setVariable("isBalance", true);
         }
         else {
-            return false;
+            execution.setVariable("isBalance", true);
         }
 //        return true;
     }
