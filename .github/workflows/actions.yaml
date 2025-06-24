@@ -20,12 +20,12 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libc6
       - name: Build jar
         run: mvn clean compile jib:build
-#      - name: Deploy to test
-#        uses: johnbeynon/render-deploy-action@v0.0.8
-#        with:
-#          service-id: srv-cv9kavaj1k6c739949b0
-#          api-key: rnd_RuOM1xpjFJYHqeWJJFiiQRwoTlPz
-#          wait-for-success: true
+      - name: Deploy to test
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: srv-d0etnbumcj7s7387q840
+          api-key: rnd_VmQJ50o6AWfdo2RB0vmrjOpur53F
+          wait-for-success: true
 
 # https://api.render.com/deploy/srv-cv9kavaj1k6c739949b0?key=zkxrEHgmc-Q
-# https://api.render.com/deploy/srv-cv9kavaj1k6c739949b0?key=zkxrEHgmc-Q
+# https://api.render.com/deploy/srv-d0etnbumcj7s7387q840?key=a_KO9ECor5A
