@@ -100,7 +100,7 @@ public class AccountService {
                 .build();
         Transaction transaction=transactionService.createEntity(transactionDTO);
         Account pgBnkAccount=getPGClearingAccount();
-        Account merchantAccount=getMerchantPayableAccount(loginUser);
+        Account merchantAccount=getMerchantBankAccount(loginUser);
 
         //First Entry
         debitCredit(merchantAccount,pgBnkAccount,transaction);
