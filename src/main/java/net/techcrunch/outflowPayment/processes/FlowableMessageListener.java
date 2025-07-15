@@ -29,6 +29,7 @@ public class FlowableMessageListener {
             if (transferDTO.get("duration") != null){
                 transferDTO.put("isRecurrent", true);
             }
+            transferDTO.putIfAbsent("isRecurrent", false);
             runtimeService.startProcessInstanceByMessage(
                     "outflowPaymentMessage",
                     transferDTO
