@@ -100,7 +100,9 @@ public class AccountService {
                 .build();
         Transaction transaction=transactionService.createEntity(transactionDTO);
         Account pgBnkAccount=getPGClearingAccount();
-        Account merchantAccount=getMerchantBankAccount(loginUser);
+
+        List<Account> allMerchantAccounts=getMerchantBankAccount(loginUser);
+        Account merchantAccount = allMerchantAccounts.getFirst();
 
         //First Entry
         debitCredit(merchantAccount,pgBnkAccount,transaction);
@@ -209,7 +211,7 @@ public class AccountService {
     }
 
     public Account getPGClearingAccount(){
-        Optional<Account> pgBankAccount = accountRepository.findByTypeAndOwnerId("BANK",null);
+        Optional<Account> pgBankAccount = accountRepository.findByCodeAndOwnerId("PG_CLEARING_ACCOUNT",null);
         if(pgBankAccount.isPresent())
             return pgBankAccount.get();
         else {
@@ -248,9 +250,8 @@ public class AccountService {
     public Account getMerchantPayableAccount(String merchantId){
         return accountRepository.findByCodeAndOwnerId("payable",merchantId.toString()).orElseThrow();
     }
-    public Account getMerchantBankAccount(String merchantId){
-        return accountRepository.findByTypeAndOwnerId("BANK",merchantId)
-                .orElseThrow();
+    public List<Account> getMerchantBankAccount(String merchantId){
+        return accountRepository.findByTypeAndOwnerId("BANK",merchantId);
     }
     public List<JournalLine> getMerchantJournalLinesByType(String merchantId, String type){
         return journalLineRepository.findByAccount_TypeAndAccount_OwnerId(type,merchantId);

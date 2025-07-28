@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -86,7 +87,12 @@ public class MerchantService {
     }
     public void startNewTransferProcess(Map<String, Object> data){
         String loginUser = (String) authenticationManager.get("sub");
-        data.put("balance",myBankAccount().getBalance());
+
+        BigDecimal balanceTotal = myBankAccount().stream()
+                .map(Account::getBalance)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        data.put("balance",balanceTotal);
         rabbitTemplate.convertAndSend(
                 "flowable.message.exchange",  // Exchange
                 "outflowPayment.routingKey", // Routing key
@@ -159,7 +165,7 @@ public class MerchantService {
         String loginUser= (String) authenticationManager.get("sub");
         return accountService.getAllMerchantJournalLines(loginUser);
     }
-    public Account myBankAccount(){
+    public List<Account> myBankAccount(){
         String loginUser= (String) authenticationManager.get("sub");
         return accountService.getMerchantBankAccount(loginUser);
     }
