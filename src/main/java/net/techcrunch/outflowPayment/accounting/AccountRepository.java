@@ -10,9 +10,9 @@ public interface AccountRepository extends JpaRepository<Account, String> {
 
     Optional<Account> findByCodeAndOwnerId(String code, String ownerId);
 
-    List<Account> findByTypeAndOwnerId(String type, String ownerId);
+//    List<Account> findByTypeAndOwnerId(String type, String ownerId);
 
-//    Optional<Account> findByTypeAndOwnerId(String type, String ownerId);
+    List<Account> findByTypeAndOwnerIdOrderByIdAsc(String type, String ownerId);
 
 
 }

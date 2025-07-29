@@ -64,7 +64,7 @@ public class TransferService {
             execution.setVariable("isBalance", true);
         }
         else {
-            execution.setVariable("isBalance", true);
+            execution.setVariable("isBalance", false);
         }
 //        return true;
     }

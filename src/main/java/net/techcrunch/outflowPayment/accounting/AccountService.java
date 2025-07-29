@@ -251,7 +251,7 @@ public class AccountService {
         return accountRepository.findByCodeAndOwnerId("payable",merchantId.toString()).orElseThrow();
     }
     public List<Account> getMerchantBankAccount(String merchantId){
-        return accountRepository.findByTypeAndOwnerId("BANK",merchantId);
+        return accountRepository.findByTypeAndOwnerIdOrderByIdAsc("BANK",merchantId);
     }
     public List<JournalLine> getMerchantJournalLinesByType(String merchantId, String type){
         return journalLineRepository.findByAccount_TypeAndAccount_OwnerId(type,merchantId);
