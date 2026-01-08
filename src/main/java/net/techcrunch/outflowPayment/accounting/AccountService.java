@@ -77,7 +77,7 @@ public class AccountService {
     public Transaction merchantPaymentJournalEntry(DelegateExecution execution) {
         String loginUser = execution.getVariable("sub").toString();
         Map<String,Object> variables = execution.getVariables();
-        System.out.println("The execution in merchantPaymentJournalEntry=== "+variables);
+//        System.out.println("The execution in merchantPaymentJournalEntry=== "+variables);
         Map<String,Object> transactionDetails = objectMapper.convertValue(variables, Map.class);
         System.out.println("This is the transactionDetails::: "+ transactionDetails);
         Map<String, Object> transactionDetailss = new HashMap<>();
@@ -94,8 +94,7 @@ public class AccountService {
                 .channel("CHANNEL")
                 .sourceAccount(execution.getVariable("accNumber").toString())
                 .transactionOwner(loginUser)
-//                .transactionDetails(transactionDetails)
-                .transactionDetails(transactionDetailss)
+                .transactionDetails(transactionDetails)
                 .status(Status.PAID)
                 .build();
         Transaction transaction=transactionService.createEntity(transactionDTO);
