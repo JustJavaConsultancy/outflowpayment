@@ -79,9 +79,7 @@ public class AccountService {
         Map<String,Object> variables = execution.getVariables();
 //        System.out.println("The execution in merchantPaymentJournalEntry=== "+variables);
         Map<String,Object> transactionDetails = objectMapper.convertValue(variables, Map.class);
-        System.out.println("This is the transactionDetails::: "+ transactionDetails);
-        Map<String, Object> transactionDetailss = new HashMap<>();
-        transactionDetailss.put("merchantId", loginUser);
+//        System.out.println("This is the transactionDetails::: "+ transactionDetails);
         long ref = ThreadLocalRandom.current().nextLong(1000000000L,9999999999L);
         TransactionDTO transactionDTO=TransactionDTO.builder()
                 .amount(new BigDecimal(execution.getVariable("amountToSend").toString()))
