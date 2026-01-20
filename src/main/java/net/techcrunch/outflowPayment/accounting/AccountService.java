@@ -75,7 +75,7 @@ public class AccountService {
         return transaction;
     }*/
     public Transaction merchantPaymentJournalEntry(DelegateExecution execution) {
-        String loginUser = execution.getVariable("sub").toString();
+        String loginUser = execution.getVariable("merchantId").toString();
         Map<String,Object> variables = execution.getVariables();
 //        System.out.println("The execution in merchantPaymentJournalEntry=== "+variables);
         Map<String,Object> transactionDetails = objectMapper.convertValue(variables, Map.class);

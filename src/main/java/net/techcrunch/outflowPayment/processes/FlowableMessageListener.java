@@ -33,7 +33,7 @@ public class FlowableMessageListener {
                 transferDTO.put("isRecurrent", true);
             }
             transferDTO.putIfAbsent("isRecurrent", false);
-            String businessKey = (String) transferDTO.get("sub");
+            String businessKey = (String) transferDTO.get("merchantId");
             runtimeService.startProcessInstanceByMessage(
                     "outflowPaymentMessage",
                     businessKey,
@@ -49,7 +49,6 @@ public class FlowableMessageListener {
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handleTaskVerifierCompletion(Map<String, Object> variables) {
-//        System.out.println("This is the verifier completion listener:::" + variables);
         String taskId = (String) variables.get("taskId");
         variables.remove("taskId");
         taskService.complete(taskId, variables);
