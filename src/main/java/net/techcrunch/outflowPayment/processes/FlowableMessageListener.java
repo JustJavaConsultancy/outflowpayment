@@ -18,7 +18,7 @@ public class FlowableMessageListener {
     TaskService taskService;
 
     @RabbitListener(
-            queues = "${message.ouflowPayment.queue}",
+            queues = "${message.outflowPayment.queue}",
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handlePaymentMessage(List<Map<String, Object>> variables) {
@@ -45,7 +45,7 @@ public class FlowableMessageListener {
     }
 
     @RabbitListener(
-            queues = "outflowPayment.task.verifier.queue",
+            queues = "${message.outflowPayment.task.verifier.queue}",
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handleTaskVerifierCompletion(Map<String, Object> variables) {
@@ -55,7 +55,7 @@ public class FlowableMessageListener {
     }
 
     @RabbitListener(
-            queues = "outflowPayment.task.authorizer.queue",
+            queues = "${message.outflowPayment.task.authorizer.queue}",
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handleTaskAuthorizerCompletion(Map<String, Object> variables){

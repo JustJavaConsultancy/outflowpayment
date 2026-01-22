@@ -15,14 +15,23 @@ public class RabbitMQConfig {
     @Value("${message.outflowPayment-routing-key}")
     String outflowRoutingKey;
 
-//    @Value("${message.outflowPayment.task.complete}")
-//    private String outflowTaskRoutingKey;
-
-    @Value("${message.ouflowPayment.queue}")
+    @Value("${message.outflowPayment.queue}")
     private String outflowQueue;
 
-//    @Value("${message.outflowPayment.task.complete.queue}")
-//    private String outflowTaskQueue;
+    @Value("${message.outflowPayment.task.verifier.queue}")
+    private String outflowTaskVerifierQueue;
+
+    @Value("${message.outflowPayment.task.authorizer.queue}")
+    private String outflowTaskAuthorizerQueue;
+
+    @Value("${message.flowable.message.exchange}")
+    private String flowableMessageExchange;
+
+    @Value("${message.outflowPayment.task.verifier}")
+    private String outflowTaskVerifier;
+
+    @Value("${message.outflowPayment.task.authorizer}")
+    private String outflowTaskAuthorizer;
 
     @Bean
     public Queue flowableMessageQueue() {
@@ -31,17 +40,17 @@ public class RabbitMQConfig {
 
     @Bean
     public Queue flowableVerifierTaskQueue(){
-        return new Queue("outflowPayment.task.verifier.queue", true);
+        return new Queue(outflowTaskVerifierQueue, true);
     }
 
     @Bean
     public Queue flowableAuthorizerTaskQueue(){
-        return new Queue("outflowPayment.task.authorizer.queue" ,true);
+        return new Queue(outflowTaskAuthorizerQueue,true);
     }
 
     @Bean
     public DirectExchange flowableMessageExchange() {
-        return new DirectExchange("flowable.message.exchange");
+        return new DirectExchange(flowableMessageExchange);
     }
 
     @Bean
@@ -58,7 +67,7 @@ public class RabbitMQConfig {
             DirectExchange exchange) {
         return BindingBuilder.bind(queue)
                 .to(exchange)
-                .with("outflowPayment.task.verifier");
+                .with(outflowTaskVerifier);
     }
 
     @Bean
@@ -67,6 +76,6 @@ public class RabbitMQConfig {
             DirectExchange exchange) {
         return BindingBuilder.bind(queue)
                 .to(exchange)
-                .with("outflowPayment.task.authorizer");
+                .with(outflowTaskAuthorizer);
     }
 }
