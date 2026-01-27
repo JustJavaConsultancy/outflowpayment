@@ -1,4 +1,4 @@
-name: build-payment-gateway
+name: build-outflow-payment
 on:
   push:
     branches:
