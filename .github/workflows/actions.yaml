@@ -1,7 +1,8 @@
-name: build-outflow-payment
+name: build-payment-gateway
 on:
   push:
     branches:
+      - dev
       - QA
 
 jobs:
@@ -14,10 +15,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '21'
-          distribution: 'temurin'
           cache: maven
-      - name: Install glibc
-        run: sudo apt-get update && sudo apt-get install -y libc6
       - name: Build jar
         run: mvn clean compile jib:build
       # - name: Deploy to test
@@ -26,6 +24,32 @@ jobs:
       #     service-id: srv-d0etnbumcj7s7387q840
       #     api-key: rnd_VmQJ50o6AWfdo2RB0vmrjOpur53F
       #     wait-for-success: true
+  deploy-QA:
+    name: Deploy QA
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/QA'
+    steps:
+      - name: Render
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: srv-d5rp5375r7bs739c6stg
+          api-key: rnd_VmQJ50o6AWfdo2RB0vmrjOpur53F
+          wait-for-success: true
+  
+  deploy-dev:
+    name: Deploy dev
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/dev'
+    steps:
+      - name: Render
+        uses: johnbeynon/render-deploy-action@v0.0.8
+        with:
+          service-id: srv-d0etnbumcj7s7387q840
+          api-key: rnd_VmQJ50o6AWfdo2RB0vmrjOpur53F
+          wait-for-success: true
 
-# https://api.render.com/deploy/srv-cv9kavaj1k6c739949b0?key=zkxrEHgmc-Q
-# https://api.render.com/deploy/srv-d0etnbumcj7s7387q840?key=a_KO9ECor5A
+# https://api.render.com/deploy/srv-cvr5ii8gjchc73bnt2r0?key=P1UQMDZiet0
+# https://api.render.com/deploy/srv-cvr5ii8gjchc73bnt2r0?key=P1UQMDZiet0
+
