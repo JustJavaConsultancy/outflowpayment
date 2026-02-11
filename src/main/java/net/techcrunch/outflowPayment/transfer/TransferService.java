@@ -37,22 +37,6 @@ public class TransferService {
         System.out.println("Verifies new beneficiary===" + execution.getVariables());
     }
 
-    /*public Map<String, Object> complianceCheck(DelegateExecution execution) {
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("fraudResponsse", paymentService.checkAml(execution));
-        variables.put("valid",sufficientBalance(execution));
-        return variables;
-    }
-    private Boolean sufficientBalance(DelegateExecution execution) {
-        boolean valid =true;
-        Map<String, Object> variables = execution.getVariables();
-        Double amountToSend = Double.parseDouble((String) variables.get("amountToSend"));
-        System.out.println("amountToSend=" + amountToSend);
-        if (amountToSend > (Double) authenticationManager.get("balance")){
-            valid=false;
-        }
-        return valid;
-    }*/
     public void checkBalance(DelegateExecution execution) {
         Map<String, String> bool = new HashMap<>();
         System.out.println("Check balance===" + execution.getVariable("balance"));

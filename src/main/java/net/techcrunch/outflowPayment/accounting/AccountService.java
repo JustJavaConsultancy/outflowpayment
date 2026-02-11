@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -23,14 +25,17 @@ public class AccountService {
     private final JournalLineRepository journalLineRepository;
     private final AccountMapper accountMapper;
     private final TransactionService transactionService;
-    @Autowired
-    ObjectMapper objectMapper;
-    public AccountService(AccountRepository accountRepository, AuthenticationManager authenticationManager,JournalLineRepository journalLineRepository, AccountMapper accountMapper, TransactionService transactionService) {
+    private final ObjectMapper objectMapper;
+
+    public AccountService(AccountRepository accountRepository, AuthenticationManager authenticationManager,
+                          JournalLineRepository journalLineRepository, AccountMapper accountMapper,
+                          TransactionService transactionService, ObjectMapper objectMapper) {
         this.accountRepository = accountRepository;
         this.journalLineRepository = journalLineRepository;
         this.accountMapper = accountMapper;
         this.transactionService = transactionService;
         this.authenticationManager = authenticationManager;
+        this.objectMapper = objectMapper;
     }
 
     public AccountDTO get(String id) {
@@ -44,57 +49,27 @@ public class AccountService {
     public AccountDTO getByCode(String code) {
         return accountMapper.toDto(accountRepository.findByCode(code).orElseThrow());
     }
-    /*public Transaction customerPaymentJournalEntry(DelegateExecution execution) {
-        Map<String,Object> variables = execution.getVariables();
-        System.out.println("The execution in customerPaymentJournalEntry=== "+variables);
-        Map<String, Object> invoiceMap = objectMapper.convertValue(variables.get("invoice"), Map.class);
 
-
-        TransactionDTO transactionDTO=TransactionDTO.builder()
-                .amount((BigDecimal) invoiceMap.get("amount"))
-                .beneficiaryAccount("Payment Gateway Account")
-                .reference(invoiceMap.get("id").toString())
-                .externalReference(invoiceMap.get("id").toString())
-                .paymentType(PaymentType.INFLOW)
-                .channel(variables.get("channel").toString())
-                .sourceAccount(invoiceMap.get("customerName").toString())
-                .transactionOwner(invoiceMap.get("merchantId").toString())
-//                .invoice(invoiceDTO)
-                .transactionDetails(invoiceMap)
-                .status(Status.PAID)
-                .build();
-        Transaction transaction=transactionService.createEntity(transactionDTO);
-        Account pgBnkAccount=getPGClearingAccount();
-        Account payableAccount=getMerchantPayableAccount(invoiceMap.get("merchantId").toString());
-//        Account payableAccount=getMerchantPayableAccount(invoiceDTO.getMerchantId());
-
-        //First Entry
-        debitCredit(payableAccount,pgBnkAccount,transaction);
-        //Second Entry charge 10%
-        charge10(payableAccount, getPGIncomeAccount(),transaction);
-        return transaction;
-    }*/
     public Transaction merchantPaymentJournalEntry(DelegateExecution execution) {
         String loginUser = execution.getVariable("merchantId").toString();
         Map<String,Object> variables = execution.getVariables();
-//        System.out.println("The execution in merchantPaymentJournalEntry=== "+variables);
         Map<String,Object> transactionDetails = objectMapper.convertValue(variables, Map.class);
-//        System.out.println("This is the transactionDetails::: "+ transactionDetails);
+
         long ref = ThreadLocalRandom.current().nextLong(1000000000L,9999999999L);
+
         TransactionDTO transactionDTO=TransactionDTO.builder()
                 .amount(new BigDecimal(execution.getVariable("amountToSend").toString()))
                 .beneficiaryAccount("Payment Gateway Account")
-//                .reference(execution.getVariable("confirmCode").toString())
-//                .externalReference(execution.getVariable("confirmCode").toString())
                 .reference(String.valueOf(ref))
                 .externalReference(String.valueOf(ref))
                 .paymentType(PaymentType.OUTFLOW)
-                .channel("CHANNEL")
-                .sourceAccount(execution.getVariable("accNumber").toString())
+                .channel("merchant-payment")
+                .sourceAccount(execution.getVariable("beneficiaryName").toString())
                 .transactionOwner(loginUser)
                 .transactionDetails(transactionDetails)
                 .status(Status.PAID)
                 .build();
+
         Transaction transaction=transactionService.createEntity(transactionDTO);
         Account pgBnkAccount=getPGClearingAccount();
 
@@ -114,19 +89,36 @@ public class AccountService {
     }
     private void debitCredit(Account debit,Account credit,Transaction transaction){
 
+        //set local date to lagos timezone
+        LocalDate today = LocalDate.now(ZoneId.of("Africa/Lagos"));
+
+        //set journal line debit
         JournalLine journalLineDebit=new JournalLine();
         journalLineDebit.setAccount(debit);
         journalLineDebit.setAmount(transaction.getAmount());
         journalLineDebit.setCurrentBalance(debit.getBalance());
         journalLineDebit.setAccountEntryType(AccountEntryType.DEBIT);
         journalLineDebit.setTransaction(transaction);
+        journalLineDebit.setExternalReference(transaction.getExternalReference());
+        journalLineDebit.setBusinessDate(today);
+        journalLineDebit.setCurrency("NGN");
+        journalLineDebit.setEntryCategory(JournalEntryCategory.REFUND);
+        journalLineDebit.setNarration(
+                AccountEntryType.DEBIT + " " + transaction.getAmount() + " via " + transaction.getPaymentType());
 
+        //set journal line credit
         JournalLine journalLineCredit=new JournalLine();
         journalLineCredit.setAccount(credit);
         journalLineCredit.setAmount(transaction.getAmount());
         journalLineCredit.setAccountEntryType(AccountEntryType.CREDIT);
         journalLineCredit.setCurrentBalance(credit.getBalance());
         journalLineCredit.setTransaction(transaction);
+        journalLineCredit.setExternalReference(transaction.getExternalReference());
+        journalLineCredit.setBusinessDate(today);
+        journalLineCredit.setCurrency("NGN");
+        journalLineCredit.setEntryCategory(JournalEntryCategory.REFUND);
+        journalLineCredit.setNarration(
+                AccountEntryType.CREDIT + " " + transaction.getAmount() + " via " + transaction.getPaymentType());
 
         journalLineRepository.save(journalLineDebit);
         journalLineRepository.save(journalLineCredit);
@@ -139,12 +131,22 @@ public class AccountService {
     private void charge10(Account debit,Account credit,Transaction transaction){
 
         BigDecimal chargeAmount=transaction.getAmount().multiply(new BigDecimal(0.1));
+
+        //set local date to lagos timezone
+        LocalDate today = LocalDate.now(ZoneId.of("Africa/Lagos"));
+
         JournalLine journalLineDebit=new JournalLine();
         journalLineDebit.setAccount(debit);
         journalLineDebit.setAmount(chargeAmount);
         journalLineDebit.setCurrentBalance(debit.getBalance());
         journalLineDebit.setAccountEntryType(AccountEntryType.DEBIT);
         journalLineDebit.setTransaction(transaction);
+        journalLineDebit.setExternalReference(transaction.getExternalReference());
+        journalLineDebit.setBusinessDate(today);
+        journalLineDebit.setCurrency("NGN");
+        journalLineDebit.setEntryCategory(JournalEntryCategory.REFUND);
+        journalLineDebit.setNarration(
+                AccountEntryType.DEBIT + " " + transaction.getAmount() + " via " + transaction.getPaymentType() + "-FEE");
 
         JournalLine journalLineCredit=new JournalLine();
         journalLineCredit.setAccount(credit);
@@ -152,6 +154,13 @@ public class AccountService {
         journalLineCredit.setAccountEntryType(AccountEntryType.CREDIT);
         journalLineCredit.setCurrentBalance(credit.getBalance());
         journalLineCredit.setTransaction(transaction);
+        journalLineCredit.setExternalReference(transaction.getExternalReference());
+        journalLineCredit.setBusinessDate(today);
+        journalLineCredit.setCurrency("NGN");
+        journalLineCredit.setEntryCategory(JournalEntryCategory.REFUND);
+        journalLineCredit.setNarration(
+                AccountEntryType.CREDIT + " " + transaction.getAmount() + " via " + transaction.getPaymentType() + "-FEE");
+
 
         journalLineRepository.save(journalLineDebit);
         journalLineRepository.save(journalLineCredit);
