@@ -22,14 +22,20 @@ public class TransferService {
 
     public void registerBeneficiary(DelegateExecution execution) {
         Map<String, String> fullName = getNames((String) execution.getVariable("beneficiaryName"));
+        String accountNumber = (String) execution.getVariable("accNumber");
+        String referenceCode = String.valueOf(System.currentTimeMillis());
         BeneficiaryDTO beneficiaryDTO = BeneficiaryDTO.builder()
                 .firstName(fullName.get("firstName"))
                 .lastName(fullName.get("lastName"))
-                .accountNumber((String) execution.getVariable("accNumber"))
+                .accountNumber(accountNumber)
                 .bankName((String) execution.getVariable("bankName"))
-                .code((String) execution.getVariable("confirmCode"))
+                .code(referenceCode)
                 .build();
-        beneficiaryRepository.save(beneficiaryMapper.toEntity(beneficiaryDTO));
+        Beneficiary singleBeneficiary = beneficiaryRepository.findByAccountNumber(accountNumber).orElse(null);
+        if (singleBeneficiary == null){
+            beneficiaryRepository.save(beneficiaryMapper.toEntity(beneficiaryDTO));
+        }
+
         System.out.println("Registers a new beneficiary===" + execution.getVariables());
     }
 
@@ -50,7 +56,6 @@ public class TransferService {
         else {
             execution.setVariable("isBalance", false);
         }
-//        return true;
     }
 
     public void debitAccount(DelegateExecution execution) {
