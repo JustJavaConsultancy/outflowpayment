@@ -3,8 +3,8 @@
   <process id="merchantInitiatedPayoutProcess" name="Merchant-initiated Payout Process" isExecutable="true" flowable:candidateStarterGroups="flowableUser">
     <extensionElements>
       <design:stencilid><![CDATA[BPMNDiagram]]></design:stencilid>
-      <design:creationdate><![CDATA[2025-12-20T09:00:31.804Z]]></design:creationdate>
-      <design:modificationdate><![CDATA[2026-01-05T15:28:49.252Z]]></design:modificationdate>
+      <design:creationdate><![CDATA[2026-02-24T10:38:15.070Z]]></design:creationdate>
+      <design:modificationdate><![CDATA[2026-02-24T11:12:02.314Z]]></design:modificationdate>
     </extensionElements>
     <serviceTask id="ServiceTask_17" name="Debit Merchant Account" flowable:expression="${transferService.debitAccount(execution)}">
       <extensionElements>
@@ -141,12 +141,12 @@ Perform AML/KYC/risk screening.</documentation>
       </extensionElements>
       <messageEventDefinition flowable:messageExpression="outflowPaymentMessage"></messageEventDefinition>
     </startEvent>
-    <intermediateCatchEvent id="IntermediateTimerEvent_35">
+    <intermediateCatchEvent id="IntermediateTimerEvent_64">
       <extensionElements>
         <design:stencilid><![CDATA[IntermediateTimerEvent]]></design:stencilid>
       </extensionElements>
       <timerEventDefinition>
-        <timeDuration>PT60S</timeDuration>
+        <timeDate>${nextBillingDate}</timeDate>
       </timerEventDefinition>
     </intermediateCatchEvent>
     <endEvent id="EndNoneEvent_15">
@@ -298,14 +298,14 @@ Perform AML/KYC/risk screening.</documentation>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
       </extensionElements>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_43" name="True" sourceRef="Exclusive_Databased_Gateway_35" targetRef="EndNoneEvent_26">
+    <sequenceFlow id="SequenceFlow_43" name="False" sourceRef="Exclusive_Databased_Gateway_35" targetRef="EndNoneEvent_26">
       <extensionElements>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
       </extensionElements>
       <conditionExpression xsi:type="tFormalExpression"><![CDATA[${!isRecurrent}]]></conditionExpression>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_44" name="False" sourceRef="Exclusive_Databased_Gateway_35" targetRef="IntermediateTimerEvent_35">
+    <sequenceFlow id="SequenceFlow_69" name="True" sourceRef="Exclusive_Databased_Gateway_35" targetRef="IntermediateTimerEvent_64">
       <extensionElements>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
         <design:display_ref_in_diagram><![CDATA[true]]></design:display_ref_in_diagram>
@@ -341,7 +341,7 @@ Perform AML/KYC/risk screening.</documentation>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
       </extensionElements>
     </sequenceFlow>
-    <sequenceFlow id="SequenceFlow_45" sourceRef="IntermediateTimerEvent_35" targetRef="ServiceTask_34">
+    <sequenceFlow id="SequenceFlow_70" sourceRef="IntermediateTimerEvent_64" targetRef="ServiceTask_17">
       <extensionElements>
         <design:stencilid><![CDATA[SequenceFlow]]></design:stencilid>
       </extensionElements>
@@ -415,7 +415,7 @@ Perform AML/KYC/risk screening.</documentation>
       <bpmndi:BPMNShape bpmnElement="Exclusive_Databased_Gateway_35" id="BPMNShape_Exclusive_Databased_Gateway_35">
         <omgdc:Bounds height="40.0" width="40.0" x="2941.9292799999994" y="118.0"></omgdc:Bounds>
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds height="18.0" width="72.0" x="2925.9292799999994" y="96.0"></omgdc:Bounds>
+          <omgdc:Bounds height="18.0" width="72.0" x="2925.0" y="96.0"></omgdc:Bounds>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape bpmnElement="Exclusive_Databased_Gateway_52" id="BPMNShape_Exclusive_Databased_Gateway_52">
@@ -430,8 +430,8 @@ Perform AML/KYC/risk screening.</documentation>
           <omgdc:Bounds height="18.0" width="107.0" x="121.0" y="109.0"></omgdc:Bounds>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNShape>
-      <bpmndi:BPMNShape bpmnElement="IntermediateTimerEvent_35" id="BPMNShape_IntermediateTimerEvent_35">
-        <omgdc:Bounds height="30.0" width="30.0" x="2946.9292799999994" y="375.698"></omgdc:Bounds>
+      <bpmndi:BPMNShape bpmnElement="IntermediateTimerEvent_64" id="BPMNShape_IntermediateTimerEvent_64">
+        <omgdc:Bounds height="30.0" width="30.0" x="2946.9292799999994" y="387.8742296079689"></omgdc:Bounds>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape bpmnElement="EndNoneEvent_15" id="BPMNShape_EndNoneEvent_15">
         <omgdc:Bounds height="28.0" width="28.0" x="1272.0" y="-45.0"></omgdc:Bounds>
@@ -449,32 +449,27 @@ Perform AML/KYC/risk screening.</documentation>
         <omgdc:Bounds height="28.0" width="28.0" x="1953.7245599999999" y="242.2208"></omgdc:Bounds>
       </bpmndi:BPMNShape>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_27" id="BPMNEdge_SequenceFlow_27" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.0" flowable:targetDockerY="20.0">
-        <omgdi:waypoint x="2856.9292799999994" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2941.9292799999994" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2856.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2941.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_49" id="BPMNEdge_SequenceFlow_49" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.0" flowable:targetDockerY="20.0">
-        <omgdi:waypoint x="1480.5712" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1561.3936800000001" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1480.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1561.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_22" id="BPMNEdge_SequenceFlow_22" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="2087.12672" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2189.9292800000003" y="138.0"></omgdi:waypoint>
-      </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_44" id="BPMNEdge_SequenceFlow_44" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="15.0" flowable:targetDockerY="15.0">
-        <omgdi:waypoint x="2961.9292799999994" y="158.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2961.9292799999994" y="375.0"></omgdi:waypoint>
-        <bpmndi:BPMNLabel>
-          <omgdc:Bounds height="18.0" width="29.0" x="2978.9292799999994" y="257.0"></omgdc:Bounds>
-        </bpmndi:BPMNLabel>
+        <omgdi:waypoint x="2087.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2189.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_23" id="BPMNEdge_SequenceFlow_23" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.0" flowable:targetDockerY="20.0">
-        <omgdi:waypoint x="2289.9292800000003" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2370.9292800000003" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2289.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2370.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
-      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_45" id="BPMNEdge_SequenceFlow_45" flowable:sourceDockerX="15.0" flowable:sourceDockerY="15.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="2946.9292799999994" y="390.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1073.0" y="390.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1073.0" y="178.0"></omgdi:waypoint>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_69" id="BPMNEdge_SequenceFlow_69" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="15.0" flowable:targetDockerY="15.0">
+        <omgdi:waypoint x="2961.9292799999994" y="158.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2961.9292799999994" y="387.8742296079689"></omgdi:waypoint>
+        <bpmndi:BPMNLabel>
+          <omgdc:Bounds height="18.0" width="24.0" x="2983.1288829867453" y="256.73531597191254"></omgdc:Bounds>
+        </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_4" id="BPMNEdge_SequenceFlow_4" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
         <omgdi:waypoint x="260.0" y="118.0"></omgdi:waypoint>
@@ -489,9 +484,9 @@ Perform AML/KYC/risk screening.</documentation>
         <omgdi:waypoint x="240.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_40" id="BPMNEdge_SequenceFlow_40" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.0" flowable:targetDockerY="20.0">
-        <omgdi:waypoint x="2577.9292799999994" y="-31.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2671.9292799999994" y="-31.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2671.9292799999994" y="118.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2577.0" y="-31.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2671.0" y="-31.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2671.0" y="118.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_41" id="BPMNEdge_SequenceFlow_41" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.0" flowable:targetDockerY="20.0">
         <omgdi:waypoint x="1123.0" y="138.0"></omgdi:waypoint>
@@ -499,32 +494,32 @@ Perform AML/KYC/risk screening.</documentation>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_42" id="BPMNEdge_SequenceFlow_42" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
         <omgdi:waypoint x="1286.0" y="158.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1286.0" y="275.2208"></omgdi:waypoint>
-        <omgdi:waypoint x="1377.40768" y="275.2208"></omgdi:waypoint>
+        <omgdi:waypoint x="1286.0" y="275.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1377.0" y="275.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_43" id="BPMNEdge_SequenceFlow_43" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
-        <omgdi:waypoint x="2981.9292799999994" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="3118.9292799999994" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2981.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="3118.0" y="138.0"></omgdi:waypoint>
         <bpmndi:BPMNLabel>
-          <omgdc:Bounds height="18.0" width="24.0" x="3031.9292799999994" y="108.0"></omgdc:Bounds>
+          <omgdc:Bounds height="18.0" width="29.0" x="3035.153030777846" y="98.12543143263414"></omgdc:Bounds>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_37" id="BPMNEdge_SequenceFlow_37" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="2691.9292799999994" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2756.9292799999994" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2691.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2756.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_16" id="BPMNEdge_SequenceFlow_16" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
         <omgdi:waypoint x="1123.0" y="-31.0"></omgdi:waypoint>
         <omgdi:waypoint x="1272.0" y="-31.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_38" id="BPMNEdge_SequenceFlow_38" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.0" flowable:targetDockerY="20.0">
-        <omgdi:waypoint x="2577.9292799999994" y="316.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2671.9292799999994" y="316.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2671.9292799999994" y="158.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2577.0" y="316.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2671.0" y="316.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2671.0" y="158.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_39" id="BPMNEdge_SequenceFlow_39" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.0" flowable:targetDockerY="20.0">
-        <omgdi:waypoint x="2577.9292799999994" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2651.9292799999994" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2577.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2651.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_18" id="BPMNEdge_SequenceFlow_18" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
         <omgdi:waypoint x="903.0" y="138.0"></omgdi:waypoint>
@@ -538,13 +533,13 @@ Perform AML/KYC/risk screening.</documentation>
         <omgdi:waypoint x="646.0" y="-30.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_33" id="BPMNEdge_SequenceFlow_33" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="2390.9292800000003" y="118.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2390.9292800000003" y="-31.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2477.9292800000003" y="-30.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2390.0" y="118.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2390.0" y="-31.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2477.0" y="-30.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_55" id="BPMNEdge_SequenceFlow_55" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="1903.7245599999999" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1987.12672" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1903.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1987.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_12" id="BPMNEdge_SequenceFlow_12" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
         <omgdi:waypoint x="696.0" y="9.0"></omgdi:waypoint>
@@ -552,25 +547,25 @@ Perform AML/KYC/risk screening.</documentation>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_34" id="BPMNEdge_SequenceFlow_34" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
         <omgdi:waypoint x="1306.0" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1380.5712" y="137.99999999999997"></omgdi:waypoint>
+        <omgdi:waypoint x="1380.0" y="137.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_56" id="BPMNEdge_SequenceFlow_56" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
-        <omgdi:waypoint x="1581.3936800000001" y="158.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1581.3936800000001" y="256.2208"></omgdi:waypoint>
-        <omgdi:waypoint x="1627.3936800000001" y="256.2208"></omgdi:waypoint>
+        <omgdi:waypoint x="1581.0" y="158.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1581.0" y="256.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1627.0" y="256.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_13" id="BPMNEdge_SequenceFlow_13" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.0" flowable:targetDockerY="20.0">
         <omgdi:waypoint x="761.0" y="138.0"></omgdi:waypoint>
         <omgdi:waypoint x="863.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_35" id="BPMNEdge_SequenceFlow_35" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="2410.9292800000003" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2477.9292800000003" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2410.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2477.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_57" id="BPMNEdge_SequenceFlow_57" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="14.0" flowable:targetDockerY="14.0">
-        <omgdi:waypoint x="1883.7245599999999" y="158.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1883.7245599999999" y="256.2208"></omgdi:waypoint>
-        <omgdi:waypoint x="1953.7245599999999" y="256.2208"></omgdi:waypoint>
+        <omgdi:waypoint x="1883.0" y="158.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1883.0" y="256.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1953.0" y="256.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_14" id="BPMNEdge_SequenceFlow_14" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
         <omgdi:waypoint x="883.0" y="118.0"></omgdi:waypoint>
@@ -581,17 +576,17 @@ Perform AML/KYC/risk screening.</documentation>
         </bpmndi:BPMNLabel>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_36" id="BPMNEdge_SequenceFlow_36" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="2390.9292800000003" y="158.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2390.9292800000003" y="316.0"></omgdi:waypoint>
-        <omgdi:waypoint x="2477.9292800000003" y="316.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2390.0" y="158.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2390.0" y="316.0"></omgdi:waypoint>
+        <omgdi:waypoint x="2477.0" y="316.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_51" id="BPMNEdge_SequenceFlow_51" flowable:sourceDockerX="50.0" flowable:sourceDockerY="40.0" flowable:targetDockerX="20.0" flowable:targetDockerY="20.0">
-        <omgdi:waypoint x="1786.9136799999997" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1863.7245599999999" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1786.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1863.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_53" id="BPMNEdge_SequenceFlow_53" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
-        <omgdi:waypoint x="1601.3936800000001" y="138.0"></omgdi:waypoint>
-        <omgdi:waypoint x="1686.9136799999997" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1601.0" y="138.0"></omgdi:waypoint>
+        <omgdi:waypoint x="1686.0" y="138.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
       <bpmndi:BPMNEdge bpmnElement="SequenceFlow_10" id="BPMNEdge_SequenceFlow_10" flowable:sourceDockerX="20.0" flowable:sourceDockerY="20.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
         <omgdi:waypoint x="280.0" y="138.0"></omgdi:waypoint>
@@ -599,6 +594,11 @@ Perform AML/KYC/risk screening.</documentation>
         <bpmndi:BPMNLabel>
           <omgdc:Bounds height="18.0" width="19.0" x="320.0" y="119.0"></omgdc:Bounds>
         </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge bpmnElement="SequenceFlow_70" id="BPMNEdge_SequenceFlow_70" flowable:sourceDockerX="15.0" flowable:sourceDockerY="15.0" flowable:targetDockerX="50.0" flowable:targetDockerY="40.0">
+        <omgdi:waypoint x="2946.9292799999994" y="402.8742296079689"></omgdi:waypoint>
+        <omgdi:waypoint x="2037.12672" y="402.8742296079689"></omgdi:waypoint>
+        <omgdi:waypoint x="2037.12672" y="178.0"></omgdi:waypoint>
       </bpmndi:BPMNEdge>
     </bpmndi:BPMNPlane>
   </bpmndi:BPMNDiagram>
