@@ -24,12 +24,14 @@ public class TransferService {
         Map<String, String> fullName = getNames((String) execution.getVariable("beneficiaryName"));
         String accountNumber = (String) execution.getVariable("accNumber");
         String referenceCode = String.valueOf(System.currentTimeMillis());
+        String merchantId = (String) execution.getVariable("merchantId");
         BeneficiaryDTO beneficiaryDTO = BeneficiaryDTO.builder()
                 .firstName(fullName.get("firstName"))
                 .lastName(fullName.get("lastName"))
                 .accountNumber(accountNumber)
                 .bankName((String) execution.getVariable("bankName"))
                 .code(referenceCode)
+                .merchantId(merchantId)
                 .build();
         Beneficiary singleBeneficiary = beneficiaryRepository.findByAccountNumber(accountNumber).orElse(null);
         if (singleBeneficiary == null){

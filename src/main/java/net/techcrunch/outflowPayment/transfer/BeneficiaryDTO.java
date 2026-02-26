@@ -17,4 +17,7 @@ public class BeneficiaryDTO implements Serializable {
     String accountNumber;
     String bankName;
     String code;
+
+    //for merchant
+    String merchantId;
 }

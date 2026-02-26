@@ -31,7 +31,7 @@ public class FlowableMessageListener {
             Map<String, Object> transferDTO = mapper.convertValue(variable.get("TransferDTO"), Map.class);
 //            if (transferDTO.get("recipientName") != null)
 //                transferDTO.put("beneficiaryName", transferDTO.get("recipientName"));
-            if (transferDTO.get("duration") != null && !"Select".equals(transferDTO.get("duration").toString())){
+            if (transferDTO.get("duration") != null && !transferDTO.get("duration").toString().isEmpty()) {
                 DurationType period = DurationType.valueOf(transferDTO.get("duration").toString().toUpperCase());
                 LocalDate nextDate = period.nextBillingDate(LocalDate.now());
                 System.out.println("nextBillingDate = " + nextDate);
