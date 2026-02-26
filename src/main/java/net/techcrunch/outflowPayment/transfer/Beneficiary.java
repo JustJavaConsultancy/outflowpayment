@@ -20,4 +20,6 @@ public class Beneficiary {
     private String bankName;
     private String code;
 
+    //for merchant
+    private String merchantId = "";
 }

@@ -22,14 +22,22 @@ public class TransferService {
 
     public void registerBeneficiary(DelegateExecution execution) {
         Map<String, String> fullName = getNames((String) execution.getVariable("beneficiaryName"));
+        String accountNumber = (String) execution.getVariable("accNumber");
+        String referenceCode = String.valueOf(System.currentTimeMillis());
+        String merchantId = (String) execution.getVariable("merchantId");
         BeneficiaryDTO beneficiaryDTO = BeneficiaryDTO.builder()
                 .firstName(fullName.get("firstName"))
                 .lastName(fullName.get("lastName"))
-                .accountNumber((String) execution.getVariable("accNumber"))
+                .accountNumber(accountNumber)
                 .bankName((String) execution.getVariable("bankName"))
-                .code((String) execution.getVariable("confirmCode"))
+                .code(referenceCode)
+                .merchantId(merchantId)
                 .build();
-        beneficiaryRepository.save(beneficiaryMapper.toEntity(beneficiaryDTO));
+        Beneficiary singleBeneficiary = beneficiaryRepository.findByAccountNumber(accountNumber).orElse(null);
+        if (singleBeneficiary == null){
+            beneficiaryRepository.save(beneficiaryMapper.toEntity(beneficiaryDTO));
+        }
+
         System.out.println("Registers a new beneficiary===" + execution.getVariables());
     }
 
@@ -37,22 +45,6 @@ public class TransferService {
         System.out.println("Verifies new beneficiary===" + execution.getVariables());
     }
 
-    /*public Map<String, Object> complianceCheck(DelegateExecution execution) {
-        Map<String, Object> variables = new HashMap<>();
-        variables.put("fraudResponsse", paymentService.checkAml(execution));
-        variables.put("valid",sufficientBalance(execution));
-        return variables;
-    }
-    private Boolean sufficientBalance(DelegateExecution execution) {
-        boolean valid =true;
-        Map<String, Object> variables = execution.getVariables();
-        Double amountToSend = Double.parseDouble((String) variables.get("amountToSend"));
-        System.out.println("amountToSend=" + amountToSend);
-        if (amountToSend > (Double) authenticationManager.get("balance")){
-            valid=false;
-        }
-        return valid;
-    }*/
     public void checkBalance(DelegateExecution execution) {
         Map<String, String> bool = new HashMap<>();
         System.out.println("Check balance===" + execution.getVariable("balance"));
@@ -66,7 +58,6 @@ public class TransferService {
         else {
             execution.setVariable("isBalance", false);
         }
-//        return true;
     }
 
     public void debitAccount(DelegateExecution execution) {

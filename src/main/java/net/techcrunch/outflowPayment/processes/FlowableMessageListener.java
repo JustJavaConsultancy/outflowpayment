@@ -1,12 +1,14 @@
 package net.techcrunch.outflowPayment.processes;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.techcrunch.outflowPayment.transfer.DurationType;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 @Component
@@ -29,7 +31,14 @@ public class FlowableMessageListener {
             Map<String, Object> transferDTO = mapper.convertValue(variable.get("TransferDTO"), Map.class);
 //            if (transferDTO.get("recipientName") != null)
 //                transferDTO.put("beneficiaryName", transferDTO.get("recipientName"));
-            if (transferDTO.get("duration") != null){
+            if (transferDTO.get("duration") != null && !transferDTO.get("duration").toString().isEmpty()) {
+                DurationType period = DurationType.valueOf(transferDTO.get("duration").toString().toUpperCase());
+                LocalDate nextDate = period.nextBillingDate(LocalDate.now());
+                System.out.println("nextBillingDate = " + nextDate);
+                transferDTO.put(
+                        "nextBillingDate",
+                        nextDate.toString()
+                );
                 transferDTO.put("isRecurrent", true);
             }
             transferDTO.putIfAbsent("isRecurrent", false);
