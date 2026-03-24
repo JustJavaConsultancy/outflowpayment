@@ -31,6 +31,7 @@ public class FlowableMessageListener {
             Map<String, Object> transferDTO = mapper.convertValue(variable.get("TransferDTO"), Map.class);
 //            if (transferDTO.get("recipientName") != null)
 //                transferDTO.put("beneficiaryName", transferDTO.get("recipientName"));
+           try{
             if (transferDTO.get("duration") != null && !transferDTO.get("duration").toString().isEmpty()) {
                 DurationType period = DurationType.valueOf(transferDTO.get("duration").toString().toUpperCase());
                 LocalDate nextDate = period.nextBillingDate(LocalDate.now());
@@ -41,6 +42,9 @@ public class FlowableMessageListener {
                 );
                 transferDTO.put("isRecurrent", true);
             }
+           }catch(Exception e){
+               System.out.println("error in recurring date");
+           }
             transferDTO.putIfAbsent("isRecurrent", false);
             String businessKey = (String) transferDTO.get("merchantId");
             runtimeService.startProcessInstanceByMessage(
