@@ -1,6 +1,8 @@
 package net.techcrunch.outflowPayment.transfer;
 
 import java.time.LocalDate;
+import java.util.Arrays;
+import java.util.Optional;
 
 public enum DurationType {
 
@@ -33,4 +35,11 @@ public enum DurationType {
     };
 
     public abstract LocalDate nextBillingDate(LocalDate from);
+
+    public static Optional<DurationType> fromValue(String value) {
+        return value == null ? Optional.empty() :
+                Arrays.stream(DurationType.values())
+                        .filter(t -> t.name().equalsIgnoreCase(value))
+                        .findFirst();
+    }
 }
