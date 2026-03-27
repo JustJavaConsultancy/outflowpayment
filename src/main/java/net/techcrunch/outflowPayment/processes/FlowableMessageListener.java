@@ -1,41 +1,45 @@
 package net.techcrunch.outflowPayment.processes;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.techcrunch.outflowPayment.transfer.DurationType;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+
 @Component
 public class FlowableMessageListener {
-    @Autowired
-    private RuntimeService runtimeService;
+    private final static Logger log = LoggerFactory.getLogger(FlowableMessageListener.class);
 
-    @Autowired
-    TaskService taskService;
+    private final RuntimeService runtimeService;
+    private final TaskService taskService;
+
+    public FlowableMessageListener(RuntimeService runtimeService, TaskService taskService){
+        this.runtimeService = runtimeService;
+        this.taskService = taskService;
+    }
 
     @RabbitListener(
             queues = "${message.outflowPayment.queue}",
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handlePaymentMessage(List<Map<String, Object>> variables) {
-        System.out.println("\nReceived variables: " + variables);
+        log.info("\nReceived variables: {}", variables);
         int i = 1;
         for (Map<String, Object> variable : variables) {
-            ObjectMapper mapper = new ObjectMapper();
-            Map<String, Object> transferDTO = mapper.convertValue(variable.get("TransferDTO"), Map.class);
-//            if (transferDTO.get("recipientName") != null)
-//                transferDTO.put("beneficiaryName", transferDTO.get("recipientName"));
+            Map<String, Object> transferDTO = (Map<String, Object>) variable.get("TransferDTO");
+            log.info("transferDTO:: {}", transferDTO);
+
             if (transferDTO.get("duration") != null && !transferDTO.get("duration").toString().isEmpty()) {
                 DurationType period = DurationType.fromValue(transferDTO.get("duration").toString()).orElse(null);
                 if (period != null) {
                     LocalDate nextDate = period.nextBillingDate(LocalDate.now());
-                    System.out.println("nextBillingDate = " + nextDate);
+                    log.info("nextBillingDate = {}",nextDate);
                     transferDTO.put(
                             "nextBillingDate",
                             nextDate.toString()
@@ -51,8 +55,6 @@ public class FlowableMessageListener {
                     businessKey,
                     transferDTO
             );
-            System.out.println("TransferDTO: " + transferDTO);
-            System.out.println("\nDone processing variable: " + i++ +"\n");
         }
     }
 
@@ -71,7 +73,6 @@ public class FlowableMessageListener {
             containerFactory = "rabbitListenerContainerFactory"
     )
     public void handleTaskAuthorizerCompletion(Map<String, Object> variables){
-//        System.out.println("This is the authorizer task completion listener:::" + variables);
         String taskId = (String) variables.get("taskId");
         variables.remove("taskId");
         taskService.complete(taskId, variables);

@@ -36,29 +36,82 @@ public class Product {
     )
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    /* ================= Identification ================= */
+
+    @Column(nullable = false, length = 50)
     private String code;
 
-    @Column(nullable = false)
+    @Column(nullable = false, length = 255)
     private String name;
 
-    @Column
+    @Column(length = 300)
     private String description;
 
-    @Column(nullable = false, precision = 10, scale = 2)
-    private BigDecimal price;
+    /* ================= Pricing ================= */
 
-    private Long quantityInStock;
+    @Column(name = "amount", nullable = false, precision = 15, scale = 2)
+    private BigDecimal amount;
 
-    private Boolean containsPhysicalGoods;
+    /* ================= Inventory ================= */
 
+    /**
+     * Null or 0 means "not stock-tracked"
+     * (used for government services & digital goods)
+     */
+    private Integer quantityInStock;
+    private boolean unlimited = false;
+
+    /**
+     * TRUE  → physical goods
+     * FALSE → services / digital / government
+     */
+    @Column(nullable = false)
+    private Boolean containsPhysicalGoods = true;
+
+    private Integer quantitySold = 0;
+
+    /* ================= Ownership ================= */
+
+    /**
+     * Present → merchant product
+     * Null    → government product
+     */
+    @Column(name = "merchant_id")
     private String merchantId;
 
+    /**
+     * Revenue settlement account
+     * - Merchant bank or ledger account
+     * - Government treasury mapping
+     */
+    @Column(name = "account_id", nullable = false)
+    private Long accountId;
+
+    /* ================= Government / IGR ================= */
+
+    /**
+     * Official Nigerian revenue code
+     * e.g. TIN, BPL, LUC, MKT
+     */
+    @Column(name = "revenue_code", length = 20)
+    private String revenueCode;
+
+    private String category = "";
+
+    /* ================= Subscription ================= */
+    private Boolean subscribe = false;
+
+    /* ================= Media ================= */
+
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "Product_Media", joinColumns = @JoinColumn(name = "product_id"))
+    @CollectionTable(
+            name = "product_media",
+            joinColumns = @JoinColumn(name = "product_id")
+    )
+    @Column(name = "media_url")
     private List<String> media = new ArrayList<>();
 
-    private Integer quantitySold;
+    /* ================= Audit ================= */
 
     @CreatedDate
     @Column(nullable = false, updatable = false)
@@ -67,8 +120,4 @@ public class Product {
     @LastModifiedDate
     @Column(nullable = false)
     private OffsetDateTime lastUpdated;
-
-
-
-
 }

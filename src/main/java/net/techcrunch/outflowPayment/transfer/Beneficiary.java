@@ -5,6 +5,11 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(columnNames = {"account_number", "merchant_id"})
+        }
+)
 @Getter
 @Setter
 @Entity
