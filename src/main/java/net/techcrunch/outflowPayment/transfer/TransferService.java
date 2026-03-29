@@ -5,6 +5,8 @@ import net.techcrunch.outflowPayment.accounting.AccountService;
 import net.techcrunch.outflowPayment.payment.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.flowable.engine.delegate.DelegateExecution;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -14,6 +16,8 @@ import java.util.Map;
 @Service("transferService")
 @RequiredArgsConstructor
 public class TransferService {
+    private static final Logger log = LoggerFactory.getLogger(TransferService.class);
+
     private final AuthenticationManager authenticationManager;
     private final PaymentService paymentService;
     private final BeneficiaryMapper beneficiaryMapper;
@@ -33,25 +37,24 @@ public class TransferService {
                 .code(referenceCode)
                 .merchantId(merchantId)
                 .build();
-        Beneficiary singleBeneficiary = beneficiaryRepository.findByAccountNumber(accountNumber).orElse(null);
+        Beneficiary singleBeneficiary = beneficiaryRepository.findByAccountNumberAndMerchantId(accountNumber, merchantId).orElse(null);
         if (singleBeneficiary == null){
             beneficiaryRepository.save(beneficiaryMapper.toEntity(beneficiaryDTO));
         }
 
-        System.out.println("Registers a new beneficiary===" + execution.getVariables());
+        log.info("Registers a new beneficiary=== {}",execution.getVariables());
     }
 
     public void verifyBeneficiary(DelegateExecution execution) {
-        System.out.println("Verifies new beneficiary===" + execution.getVariables());
+        log.info("Verifies new beneficiary=== {}",execution.getVariables());
     }
 
     public void checkBalance(DelegateExecution execution) {
-        Map<String, String> bool = new HashMap<>();
-        System.out.println("Check balance===" + execution.getVariable("balance"));
-        System.out.println("Check amount===" + execution.getVariable("amountToSend"));
+        log.info("Check balance=== {}",execution.getVariable("balance"));
+        log.info("Check amount=== {}",execution.getVariable("amountToSend"));
         BigDecimal balance = new BigDecimal(String.valueOf(execution.getVariable("balance")));
         BigDecimal amount = new BigDecimal(String.valueOf(execution.getVariable("amountToSend")));
-        System.out.println("Check balance===" +balance +" "+ execution.getVariables());
+
         if(balance.compareTo(amount) > 0) {
             execution.setVariable("isBalance", true);
         }
@@ -62,21 +65,20 @@ public class TransferService {
 
     public void debitAccount(DelegateExecution execution) {
         accountingService.merchantPaymentJournalEntry(execution);
-        System.out.println("Debits Merchant Account===" + execution.getVariables());
+        log.info("Debits Merchant Account=== {}",execution.getVariables());
     }
 
     public void transferFund(DelegateExecution execution) {
-        System.out.println("Transfers funds to beneficiary===" + execution.getVariables());
+        log.info("Transfers funds to beneficiary=== {}",execution.getVariables());
     }
     public void merchantAPI(DelegateExecution execution) {
-        System.out.println("Merchant API===" + execution.getVariables());
+        log.info("Merchant API=== {}",execution.getVariables());
     }
 
 
     public void sendNotification(DelegateExecution execution){
-
-        System.out.println(String.format("\n\n" + " Sending notification; task...%s ...execution variable==%s",
-                execution.getCurrentActivityName(), execution.getVariables()));
+        log.info( "\n\nSending notification; task... {} ...execution variable== {}",
+                execution.getCurrentActivityName(), execution.getVariables());
     }
 
     private Map<String, String> getNames(String fullName){

@@ -53,23 +53,7 @@ public class ProductService {
         mapToEntity(productDTO, product);
         productRepository.save(product);
     }
-    public Long updateProduct(DelegateExecution execution) {
-        BigDecimal amount= (BigDecimal) execution.getVariable("amount");
 
-        final Product product = productRepository
-                .findById(Long.parseLong(execution
-                        .getVariable("productId").toString()))
-                .orElseThrow(NotFoundException::new);
-        Integer quantity=amount.divide(product.getPrice()).intValue();
-
-        System.out.println(" Quantity Sold Actually=="+quantity);
-
-        product.setQuantityInStock(product.getQuantityInStock()-quantity);
-        Integer currentQuantity=product.getQuantitySold()!=null?product.getQuantitySold().intValue():0;
-        product.setQuantitySold(currentQuantity+quantity);
-        System.out.println(" Product Updated Here Variables==....."+execution.getVariables());
-        return 1L;
-    }
     public void delete(final Long id) {
         productRepository.deleteById(id);
     }
@@ -78,27 +62,40 @@ public class ProductService {
         productDTO.setId(product.getId());
         productDTO.setCode(product.getCode());
         productDTO.setName(product.getName());
-        productDTO.setPrice(product.getPrice());
+        productDTO.setAmount(product.getAmount());
         productDTO.setDescription(product.getDescription());
         productDTO.setContainsPhysicalGoods(product.getContainsPhysicalGoods());
         productDTO.setQuantityInStock(product.getQuantityInStock());
+        productDTO.setUnlimited(product.isUnlimited());
+        productDTO.setQuantitySold(product.getQuantitySold() != null ? product.getQuantitySold() : 0);
         productDTO.setMedia(product.getMedia());
         productDTO.setDateCreated(product.getDateCreated());
+        productDTO.setSubscribe(product.getSubscribe());
         productDTO.setMerchantId(product.getMerchantId());
+        productDTO.setAccountId(product.getAccountId());
+        productDTO.setRevenueCode(product.getRevenueCode());
+        productDTO.setCategory(product.getCategory());
         return productDTO;
     }
 
     private Product mapToEntity(final ProductDTO productDTO, final Product product) {
         product.setCode(productDTO.getCode());
         product.setName(productDTO.getName());
-        product.setPrice(productDTO.getPrice());
+        product.setAmount(productDTO.getAmount());
         product.setDescription(productDTO.getDescription());
         product.setContainsPhysicalGoods(productDTO.getContainsPhysicalGoods());
         product.setQuantityInStock(productDTO.getQuantityInStock());
+        product.setUnlimited(productDTO.isUnlimited());
         product.setMedia(productDTO.getMedia());
+        product.setQuantitySold(productDTO.getQuantitySold() != null ? productDTO.getQuantitySold().intValue() : 0);
+        product.setSubscribe(productDTO.getSubscribe());
         product.setMerchantId(productDTO.getMerchantId());
+        product.setAccountId(productDTO.getAccountId());
+        product.setRevenueCode(productDTO.getRevenueCode());
+        product.setCategory(productDTO.getCategory());
         return product;
     }
+
 
     public boolean codeExists(final String code) {
         return productRepository.existsByCodeIgnoreCase(code);

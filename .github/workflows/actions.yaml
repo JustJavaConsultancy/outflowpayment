@@ -46,7 +46,7 @@ jobs:
       - name: Render
         uses: johnbeynon/render-deploy-action@v0.0.8
         with:
-          service-id: srv-d0etnbumcj7s7387q840
+          service-id: srv-d45i0fodl3ps738e8rug
           api-key: rnd_VmQJ50o6AWfdo2RB0vmrjOpur53F
           wait-for-success: true
 
