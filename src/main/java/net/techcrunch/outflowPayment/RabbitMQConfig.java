@@ -9,7 +9,6 @@ import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFacto
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.amqp.rabbit.config.RetryInterceptorBuilder;
-import org.springframework.amqp.rabbit.config.StatelessRetryOperationsInterceptorFactoryBean;
 import org.springframework.amqp.rabbit.listener.RabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -86,7 +85,7 @@ public class RabbitMQConfig {
 
     @Bean
     public Binding binding(@Qualifier("flowableMessageQueue") Queue queue,
-                           DirectExchange exchange) {
+                           @Qualifier("flowableMessageExchange") DirectExchange exchange) {
         return BindingBuilder.bind(queue)
                 .to(exchange)
                 .with(outflowRoutingKey);
@@ -95,7 +94,7 @@ public class RabbitMQConfig {
     @Bean
     public Binding verifierBinding(
             @Qualifier("flowableVerifierTaskQueue") Queue queue,
-            DirectExchange exchange) {
+            @Qualifier("flowableMessageExchange") DirectExchange exchange) {
         return BindingBuilder.bind(queue)
                 .to(exchange)
                 .with(outflowTaskVerifier);
@@ -104,7 +103,7 @@ public class RabbitMQConfig {
     @Bean
     public Binding authorizerBinding(
             @Qualifier("flowableAuthorizerTaskQueue") Queue queue,
-            DirectExchange exchange) {
+            @Qualifier("flowableMessageExchange") DirectExchange exchange) {
         return BindingBuilder.bind(queue)
                 .to(exchange)
                 .with(outflowTaskAuthorizer);
