@@ -23,6 +23,8 @@ public class TransferService {
     private final BeneficiaryMapper beneficiaryMapper;
     private final BeneficiaryRepository beneficiaryRepository;
     private final AccountService accountingService;
+    private final TransferInstructionService transferInstructionService;
+    private final PayoutProviderRegistry payoutProviderRegistry;
 
     public void registerBeneficiary(DelegateExecution execution) {
         Map<String, String> fullName = getNames((String) execution.getVariable("beneficiaryName"));
@@ -64,12 +66,65 @@ public class TransferService {
     }
 
     public void debitAccount(DelegateExecution execution) {
-        accountingService.merchantPaymentJournalEntry(execution);
+        Object debitTransaction = accountingService.merchantPaymentJournalEntry(execution);
+        Map<String, Object> debitResult = Map.of(
+                "debitTransaction", debitTransaction == null ? "" : debitTransaction.toString()
+        );
+        transferInstructionService.markDebitedIfPresent(
+                execution.getVariables(),
+                execution.getProcessInstanceId(),
+                debitResult
+        );
         log.info("Debits Merchant Account=== {}",execution.getVariables());
     }
 
     public void transferFund(DelegateExecution execution) {
         log.info("Transfers funds to beneficiary=== {}",execution.getVariables());
+        Map<String, Object> variables = execution.getVariables();
+        transferInstructionService.markTransferProcessingIfPresent(
+                variables,
+                execution.getProcessInstanceId()
+        );
+        PayoutTransferResult transferResult = payoutProviderRegistry.transfer(
+                selectedPayoutProvider(variables),
+                new PayoutTransferRequest(
+                        String.valueOf(variables.get("transferReference")),
+                        execution.getProcessInstanceId(),
+                        String.valueOf(variables.get("merchantId")),
+                        new BigDecimal(String.valueOf(variables.get("amountToSend"))),
+                        String.valueOf(variables.get("accNumber")),
+                        String.valueOf(variables.get("bankName")),
+                        String.valueOf(variables.get("narration")),
+                        variables
+                )
+        );
+        execution.setVariable("payoutProviderReference", transferResult.providerReference());
+        execution.setVariable("payoutProviderStatus", transferResult.providerStatus());
+        execution.setVariable("payoutProviderResponseCode", transferResult.responseCode());
+
+        if (transferResult.successful()) {
+            transferInstructionService.markCompletedIfPresent(
+                    variables,
+                    execution.getProcessInstanceId(),
+                    transferResult.toMetadata()
+            );
+            return;
+        }
+
+        transferInstructionService.markReversalPendingIfPresent(
+                variables,
+                execution.getProcessInstanceId(),
+                transferResult.toMetadata()
+        );
+        Object reversalTransaction = accountingService.reverseMerchantPaymentJournalEntry(execution);
+        Map<String, Object> reversalResult = new HashMap<>(transferResult.toMetadata());
+        reversalResult.put("reversalTransaction", reversalTransaction == null ? "" : reversalTransaction.toString());
+        transferInstructionService.markReversedIfPresent(
+                variables,
+                execution.getProcessInstanceId(),
+                reversalResult
+        );
+        throw new IllegalStateException("Payout provider failed transfer: " + transferResult.message());
     }
     public void merchantAPI(DelegateExecution execution) {
         log.info("Merchant API=== {}",execution.getVariables());
@@ -93,5 +148,13 @@ public class TransferService {
             map.put("lastName", "");
         }
         return map;
+    }
+
+    private String selectedPayoutProvider(Map<String, Object> variables) {
+        Object provider = variables.get("payoutProvider");
+        if (provider == null) {
+            provider = variables.get("provider");
+        }
+        return provider == null ? null : provider.toString();
     }
 }

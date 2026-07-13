@@ -16,7 +16,6 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.*;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service("accountingService")
 public class AccountService {
@@ -26,16 +25,20 @@ public class AccountService {
     private final AccountMapper accountMapper;
     private final TransactionService transactionService;
     private final ObjectMapper objectMapper;
+    private final AccountingPostingService accountingPostingService;
 
     public AccountService(AccountRepository accountRepository, AuthenticationManager authenticationManager,
                           JournalLineRepository journalLineRepository, AccountMapper accountMapper,
-                          TransactionService transactionService, ObjectMapper objectMapper) {
+                          TransactionService transactionService,
+                          ObjectMapper objectMapper,
+                          AccountingPostingService accountingPostingService) {
         this.accountRepository = accountRepository;
         this.journalLineRepository = journalLineRepository;
         this.accountMapper = accountMapper;
         this.transactionService = transactionService;
         this.authenticationManager = authenticationManager;
         this.objectMapper = objectMapper;
+        this.accountingPostingService = accountingPostingService;
     }
 
     public AccountDTO get(String id) {
@@ -54,14 +57,30 @@ public class AccountService {
         String loginUser = execution.getVariable("merchantId").toString();
         Map<String,Object> variables = execution.getVariables();
         Map<String,Object> transactionDetails = objectMapper.convertValue(variables, Map.class);
+        BigDecimal amount = new BigDecimal(execution.getVariable("amountToSend").toString());
+        String postingKey = accountingPostingService.merchantOutflowPostingKey(execution);
+        Optional<Map<String, Object>> completedPosting = accountingPostingService.findCompletedResponse(
+                AccountingPostingService.MERCHANT_OUTFLOW_DEBIT,
+                postingKey
+        );
+        if (completedPosting.isPresent()) {
+            return objectMapper.convertValue(completedPosting.get(), Transaction.class);
+        }
 
-        long ref = ThreadLocalRandom.current().nextLong(1000000000L,9999999999L);
+        AccountingPostingRecord postingRecord = accountingPostingService.begin(
+                AccountingPostingService.MERCHANT_OUTFLOW_DEBIT,
+                postingKey,
+                amount,
+                execution,
+                transactionDetails
+        );
+        String ref = accountingPostingService.stableReference("out", postingKey);
 
         TransactionDTO transactionDTO=TransactionDTO.builder()
-                .amount(new BigDecimal(execution.getVariable("amountToSend").toString()))
+                .amount(amount)
                 .beneficiaryAccount("Payment Gateway Account")
-                .reference(String.valueOf(ref))
-                .externalReference(String.valueOf(ref))
+                .reference(ref)
+                .externalReference(ref)
                 .paymentType(PaymentType.OUTFLOW)
                 .channel("merchant-payment")
                 .sourceAccount(execution.getVariable("beneficiaryName").toString())
@@ -70,17 +89,83 @@ public class AccountService {
                 .status(Status.PAID)
                 .build();
 
-        Transaction transaction=transactionService.createEntity(transactionDTO);
-        Account pgBnkAccount=getPGClearingAccount();
+        try {
+            Transaction transaction=transactionService.createEntity(transactionDTO);
+            Account pgBnkAccount=getPGClearingAccount();
 
-        List<Account> allMerchantAccounts=getMerchantBankAccount(loginUser);
-        Account merchantAccount = allMerchantAccounts.getFirst();
+            List<Account> allMerchantAccounts=getMerchantBankAccount(loginUser);
+            Account merchantAccount = allMerchantAccounts.getFirst();
 
-        //First Entry
-        debitCredit(merchantAccount,pgBnkAccount,transaction);
-        //Second Entry charge 10%
-        charge10(merchantAccount, getPGIncomeAccount(),transaction);
-        return transaction;
+            //First Entry
+            debitCredit(merchantAccount,pgBnkAccount,transaction);
+            //Second Entry charge 10%
+            charge10(merchantAccount, getPGIncomeAccount(),transaction);
+            accountingPostingService.markCompleted(
+                    postingRecord,
+                    transaction.getReference(),
+                    objectMapper.convertValue(transaction, Map.class)
+            );
+            return transaction;
+        } catch (RuntimeException exception) {
+            accountingPostingService.markFailed(postingRecord, Map.of("error", exception.getMessage()));
+            throw exception;
+        }
+    }
+
+    public Transaction reverseMerchantPaymentJournalEntry(DelegateExecution execution) {
+        String loginUser = execution.getVariable("merchantId").toString();
+        Map<String,Object> variables = execution.getVariables();
+        Map<String,Object> transactionDetails = objectMapper.convertValue(variables, Map.class);
+        BigDecimal amount = new BigDecimal(execution.getVariable("amountToSend").toString());
+        String postingKey = accountingPostingService.outflowReversalPostingKey(execution);
+        Optional<Map<String, Object>> completedPosting = accountingPostingService.findCompletedResponse(
+                AccountingPostingService.OUTFLOW_REVERSAL,
+                postingKey
+        );
+        if (completedPosting.isPresent()) {
+            return objectMapper.convertValue(completedPosting.get(), Transaction.class);
+        }
+
+        AccountingPostingRecord postingRecord = accountingPostingService.begin(
+                AccountingPostingService.OUTFLOW_REVERSAL,
+                postingKey,
+                amount,
+                execution,
+                transactionDetails
+        );
+        String ref = accountingPostingService.stableReference("rev", postingKey);
+
+        TransactionDTO transactionDTO = TransactionDTO.builder()
+                .amount(amount)
+                .beneficiaryAccount("Merchant Account")
+                .reference(ref)
+                .externalReference(ref)
+                .paymentType(PaymentType.OUTFLOW)
+                .channel("merchant-payment-reversal")
+                .sourceAccount("Payment Gateway Account")
+                .transactionOwner(loginUser)
+                .transactionDetails(transactionDetails)
+                .status(Status.PAID)
+                .build();
+
+        try {
+            Transaction reversalTransaction = transactionService.createEntity(transactionDTO);
+            Account pgBnkAccount = getPGClearingAccount();
+            Account merchantAccount = getMerchantBankAccount(loginUser).getFirst();
+
+            debitCredit(pgBnkAccount, merchantAccount, reversalTransaction);
+            reverseCharge10(getPGIncomeAccount(), merchantAccount, reversalTransaction);
+
+            accountingPostingService.markCompleted(
+                    postingRecord,
+                    reversalTransaction.getReference(),
+                    objectMapper.convertValue(reversalTransaction, Map.class)
+            );
+            return reversalTransaction;
+        } catch (RuntimeException exception) {
+            accountingPostingService.markFailed(postingRecord, Map.of("error", exception.getMessage()));
+            throw exception;
+        }
     }
 
     public void settlementJournalEntry(DelegateExecution execution){
@@ -169,6 +254,25 @@ public class AccountService {
 
         accountRepository.save(debit);
         accountRepository.save(credit);
+    }
+
+    private void reverseCharge10(Account debit, Account credit, Transaction transaction) {
+        BigDecimal chargeAmount = transaction.getAmount().multiply(BigDecimal.valueOf(0.1));
+        TransactionDTO feeReversalDTO = TransactionDTO.builder()
+                .amount(chargeAmount)
+                .beneficiaryAccount("Merchant Account")
+                .reference(transaction.getReference() + "-FEE")
+                .externalReference(transaction.getExternalReference() + "-FEE")
+                .paymentType(PaymentType.OUTFLOW)
+                .channel("merchant-payment-fee-reversal")
+                .sourceAccount("Payment Gateway Income Account")
+                .transactionOwner(transaction.getTransactionOwner())
+                .transactionDetails(transaction.getTransactionDetails())
+                .status(Status.PAID)
+                .build();
+
+        Transaction feeReversalTransaction = transactionService.createEntity(feeReversalDTO);
+        debitCredit(debit, credit, feeReversalTransaction);
     }
     public AccountDTO update(String id, AccountDTO accountDTO) {
         return accountMapper.toDto(accountRepository.save(accountMapper.partialUpdate(accountDTO, accountRepository.findById(id).orElseThrow())));
