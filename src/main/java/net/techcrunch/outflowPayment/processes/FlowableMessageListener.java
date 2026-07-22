@@ -1,14 +1,18 @@
 package net.techcrunch.outflowPayment.processes;
 
-import net.techcrunch.outflowPayment.transfer.DurationType;
+import net.techcrunch.outflowPayment.messaging.FailedInboundMessageService;
+import net.techcrunch.outflowPayment.transfer.TransferInstructionResult;
+import net.techcrunch.outflowPayment.transfer.TransferInstructionService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
+import org.flowable.engine.runtime.ProcessInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.AmqpRejectAndDontRequeueException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -18,10 +22,26 @@ public class FlowableMessageListener {
 
     private final RuntimeService runtimeService;
     private final TaskService taskService;
+    private final TransferInstructionService transferInstructionService;
+    private final FailedInboundMessageService failedInboundMessageService;
 
-    public FlowableMessageListener(RuntimeService runtimeService, TaskService taskService){
+    @Value("${message.outflowPayment.queue}")
+    private String outflowQueue;
+
+    @Value("${message.outflowPayment-routing-key}")
+    private String outflowRoutingKey;
+
+    @Value("${message.flowable.message.exchange}")
+    private String flowableMessageExchange;
+
+    public FlowableMessageListener(RuntimeService runtimeService,
+                                   TaskService taskService,
+                                   TransferInstructionService transferInstructionService,
+                                   FailedInboundMessageService failedInboundMessageService){
         this.runtimeService = runtimeService;
         this.taskService = taskService;
+        this.transferInstructionService = transferInstructionService;
+        this.failedInboundMessageService = failedInboundMessageService;
     }
 
     @RabbitListener(
@@ -30,31 +50,41 @@ public class FlowableMessageListener {
     )
     public void handlePaymentMessage(List<Map<String, Object>> variables) {
         log.info("\nReceived variables: {}", variables);
-        int i = 1;
         for (Map<String, Object> variable : variables) {
-            Map<String, Object> transferDTO = (Map<String, Object>) variable.get("TransferDTO");
-            log.info("transferDTO:: {}", transferDTO);
+            try {
+                TransferInstructionResult instructionResult = transferInstructionService.prepareInstruction(variable);
+                Map<String, Object> transferDTO = instructionResult.variables();
+                log.info("transferDTO:: {}", transferDTO);
 
-            if (transferDTO.get("duration") != null && !transferDTO.get("duration").toString().isEmpty()) {
-                DurationType period = DurationType.fromValue(transferDTO.get("duration").toString()).orElse(null);
-                if (period != null) {
-                    LocalDate nextDate = period.nextBillingDate(LocalDate.now());
-                    log.info("nextBillingDate = {}",nextDate);
-                    transferDTO.put(
-                            "nextBillingDate",
-                            nextDate.toString()
+                if (!instructionResult.shouldStartProcess()) {
+                    log.info(
+                            "Skipping duplicate outflow transfer instruction: {}",
+                            instructionResult.instruction().getReference()
                     );
-                    transferDTO.put("isRecurrent", true);
+                    continue;
                 }
-            }
 
-            transferDTO.putIfAbsent("isRecurrent", false);
-            String businessKey = (String) transferDTO.get("merchantId");
-            runtimeService.startProcessInstanceByMessage(
-                    "outflowPaymentMessage",
-                    businessKey,
-                    transferDTO
-            );
+                String businessKey = (String) transferDTO.get("merchantId");
+                ProcessInstance processInstance = runtimeService.startProcessInstanceByMessage(
+                        "outflowPaymentMessage",
+                        businessKey,
+                        transferDTO
+                );
+                transferInstructionService.markProcessStarted(
+                        instructionResult.instruction(),
+                        processInstance.getProcessInstanceId()
+                );
+            } catch (RuntimeException exception) {
+                failedInboundMessageService.recordFailure(
+                        outflowQueue,
+                        flowableMessageExchange,
+                        outflowRoutingKey,
+                        variable,
+                        exception.getClass().getSimpleName(),
+                        exception.getMessage()
+                );
+                throw new AmqpRejectAndDontRequeueException("Outflow message failed and was recorded for replay", exception);
+            }
         }
     }
 

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bluepay.local/messages/outflow-transfer-request.schema.json",
+  "title": "OutflowTransferRequest",
+  "type": "object",
+  "required": ["eventType", "eventVersion", "sourceService", "messageId", "correlationId", "createdAt"],
+  "properties": {
+    "eventType": { "type": "string", "enum": ["OUTFLOW_TRANSFER_REQUESTED", "OUTFLOW_REFUND_REQUESTED"] },
+    "eventVersion": { "type": "string" },
+    "sourceService": { "type": "string", "const": "bluepay" },
+    "messageId": { "type": "string" },
+    "correlationId": { "type": "string" },
+    "transferReference": { "type": ["string", "null"] },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "TransferDTO": { "type": ["object", "null"] },
+    "payload": { "type": ["object", "null"] }
+  },
+  "additionalProperties": true
+}

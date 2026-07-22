@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://contracts.bluepay.local/messages/settlement-result.schema.json",
+  "title": "SettlementResult",
+  "type": "object",
+  "required": ["eventType", "eventVersion", "sourceService", "messageId", "correlationId", "reference", "createdAt", "payload"],
+  "properties": {
+    "eventType": { "type": "string", "const": "OUTFLOW_SETTLEMENT_RESULT" },
+    "eventVersion": { "type": "string" },
+    "sourceService": { "type": "string", "const": "outflowpayment" },
+    "messageId": { "type": "string" },
+    "correlationId": { "type": ["string", "null"] },
+    "reference": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "payload": {
+      "type": "object",
+      "required": ["settlementReference", "outflowStatus", "settlementStatus"],
+      "properties": {
+        "settlementReference": { "type": "string" },
+        "payoutGroupReference": { "type": ["string", "null"] },
+        "batchReference": { "type": ["string", "null"] },
+        "settlementBatchId": { "type": ["string", "null"] },
+        "settlementDate": { "type": ["string", "null"] },
+        "settlementItemCount": { "type": ["integer", "null"] },
+        "amount": { "type": ["number", "string", "null"] },
+        "outflowStatus": { "type": "string" },
+        "settlementStatus": { "type": "string", "enum": ["SETTLED", "FAILED"] },
+        "processInstanceId": { "type": ["string", "null"] },
+        "providerResult": { "type": "object" },
+        "items": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["transactionReference", "status"],
+            "properties": {
+              "transactionReference": { "type": "string" },
+              "status": { "type": "string", "enum": ["SETTLED", "FAILED"] },
+              "providerReference": { "type": ["string", "null"] },
+              "failureCode": { "type": ["string", "null"] },
+              "failureReason": { "type": ["string", "null"] }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

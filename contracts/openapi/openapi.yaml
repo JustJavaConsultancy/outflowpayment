@@ -1,0 +1,192 @@
+openapi: 3.0.3
+info:
+  title: Outflow Payment API
+  version: 1.0.0
+  description: Outflow transfer, refund, settlement, operational diagnostics, failed-message replay, and reconciliation APIs.
+servers:
+  - url: http://localhost:9091
+    description: Local outflowpayment
+paths:
+  /transfers/status/{transferReference}:
+    get:
+      tags: [Transfers]
+      summary: Get transfer status by reference
+      parameters:
+        - name: transferReference
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Transfer status }
+  /operational-events/{reference}:
+    get:
+      tags: [Operational Events]
+      summary: List operational events by reference
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          schema: { type: string }
+      responses:
+        '200': { description: Operational events }
+  /failed-messages:
+    get:
+      tags: [Failed Messages]
+      summary: List failed inbound RabbitMQ messages
+      responses:
+        '200': { description: Failed messages }
+  /failed-messages/{id}/replay:
+    post:
+      tags: [Failed Messages]
+      summary: Replay failed inbound RabbitMQ message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Replay result }
+  /failed-messages/{id}/ignore:
+    post:
+      tags: [Failed Messages]
+      summary: Ignore failed inbound RabbitMQ message
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Ignore result }
+  /reconciliation/outflow/imports:
+    get:
+      tags: [Reconciliation]
+      summary: List imported outflow/bank statements
+      responses:
+        '200': { description: Statement imports }
+    post:
+      tags: [Reconciliation]
+      summary: Import outflow bank/provider CSV statement
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: { type: string, format: binary }
+                sourceType: { type: string, enum: [PROVIDER_STATEMENT, BANK_STATEMENT] }
+                sourceName: { type: string }
+                profileName: { type: string }
+      responses:
+        '200': { description: Import result }
+  /reconciliation/outflow/imports/{id}/items:
+    get:
+      tags: [Reconciliation]
+      summary: List parsed rows for a statement import
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Statement rows }
+  /reconciliation/outflow/imports/{id}/rejected-items:
+    get:
+      tags: [Reconciliation]
+      summary: List rejected rows for a statement import
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Rejected statement rows }
+  /reconciliation/outflow/run:
+    post:
+      tags: [Reconciliation]
+      summary: Run internal and optional statement-backed outflow reconciliation
+      parameters:
+        - name: importId
+          in: query
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Reconciliation run }
+  /reconciliation/outflow/runs:
+    get:
+      tags: [Reconciliation]
+      summary: List outflow reconciliation runs
+      responses:
+        '200': { description: Reconciliation runs }
+  /reconciliation/outflow/exceptions:
+    get:
+      tags: [Reconciliation]
+      summary: List open outflow reconciliation exceptions
+      responses:
+        '200': { description: Reconciliation exceptions }
+  /reconciliation/outflow/exceptions/{id}/assign:
+    post:
+      tags: [Reconciliation]
+      summary: Assign an outflow reconciliation exception
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Assigned reconciliation exception }
+  /reconciliation/outflow/exceptions/{id}/notes:
+    post:
+      tags: [Reconciliation]
+      summary: Add an audit note to an outflow reconciliation exception
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Reconciliation exception note recorded }
+  /reconciliation/outflow/exceptions/{id}/accept-difference:
+    post:
+      tags: [Reconciliation]
+      summary: Accept an outflow reconciliation exception difference
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Reconciliation exception difference accepted }
+  /reconciliation/outflow/exceptions/{id}/resolve:
+    post:
+      tags: [Reconciliation]
+      summary: Resolve an outflow reconciliation exception
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Resolved reconciliation exception }
+  /reconciliation/outflow/exceptions/{id}/reopen:
+    post:
+      tags: [Reconciliation]
+      summary: Reopen an outflow reconciliation exception
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Reopened reconciliation exception }
+  /reconciliation/outflow/exceptions/{id}/audit:
+    get:
+      tags: [Reconciliation]
+      summary: List audit events for an outflow reconciliation exception
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer, format: int64 }
+      responses:
+        '200': { description: Reconciliation exception audit events }

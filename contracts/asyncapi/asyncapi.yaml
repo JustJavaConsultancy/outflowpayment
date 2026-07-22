@@ -1,0 +1,53 @@
+asyncapi: 2.6.0
+info:
+  title: Outflow Payment RabbitMQ Contracts
+  version: 1.0.0
+  description: RabbitMQ contracts consumed and published by outflowpayment.
+servers:
+  local:
+    url: amqp://localhost:5672
+    protocol: amqp
+channels:
+  flowable.message.exchange/outflowPayment.routingKey:
+    description: Main outflow inbound queue for transfers, refunds, and settlements. DLQ routing key is `outflowPayment.routingKey.dlq`.
+    subscribe:
+      operationId: consumeOutflowRequest
+      message:
+        oneOf:
+          - $ref: '#/components/messages/OutflowTransferRequest'
+          - $ref: '#/components/messages/SettlementPayoutRequest'
+  flowable.message.exchange/outflowPayment.task.verifier:
+    description: Outflow verifier task queue. DLQ routing key appends `.dlq`.
+    subscribe:
+      operationId: consumeVerifierTask
+      message:
+        $ref: '#/components/messages/OutflowTransferRequest'
+  flowable.message.exchange/outflowPayment.task.authorizer:
+    description: Outflow authorizer task queue. DLQ routing key appends `.dlq`.
+    subscribe:
+      operationId: consumeAuthorizerTask
+      message:
+        $ref: '#/components/messages/OutflowTransferRequest'
+  flowable.message.exchange/bluepay.settlement.result:
+    description: Settlement result published to bluepay after terminal outflow settlement processing.
+    publish:
+      operationId: publishSettlementResult
+      message:
+        $ref: '#/components/messages/SettlementResult'
+components:
+  messages:
+    OutflowTransferRequest:
+      name: OutflowTransferRequest
+      contentType: application/json
+      payload:
+        $ref: '../schemas/messages/outflow-transfer-request.schema.json'
+    SettlementPayoutRequest:
+      name: SettlementPayoutRequest
+      contentType: application/json
+      payload:
+        $ref: '../schemas/messages/settlement-payout-request.schema.json'
+    SettlementResult:
+      name: SettlementResult
+      contentType: application/json
+      payload:
+        $ref: '../schemas/messages/settlement-result.schema.json'
