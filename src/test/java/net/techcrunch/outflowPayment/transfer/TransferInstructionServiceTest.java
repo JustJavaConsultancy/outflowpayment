@@ -22,11 +22,13 @@ class TransferInstructionServiceTest {
             mock(TransferInstructionRepository.class);
     private final OperationalEventService operationalEventService = mock(OperationalEventService.class);
     private final SettlementResultPublisher settlementResultPublisher = mock(SettlementResultPublisher.class);
+    private final OutflowResultPublisher outflowResultPublisher = mock(OutflowResultPublisher.class);
     private final TransferInstructionService transferInstructionService =
             new TransferInstructionService(
                     transferInstructionRepository,
                     operationalEventService,
-                    settlementResultPublisher
+                    settlementResultPublisher,
+                    outflowResultPublisher
             );
 
     @Test
