@@ -19,13 +19,16 @@ public class TransferInstructionService {
     private final TransferInstructionRepository transferInstructionRepository;
     private final OperationalEventService operationalEventService;
     private final SettlementResultPublisher settlementResultPublisher;
+    private final OutflowResultPublisher outflowResultPublisher;
 
     public TransferInstructionService(TransferInstructionRepository transferInstructionRepository,
                                       OperationalEventService operationalEventService,
-                                      SettlementResultPublisher settlementResultPublisher) {
+                                      SettlementResultPublisher settlementResultPublisher,
+                                      OutflowResultPublisher outflowResultPublisher) {
         this.transferInstructionRepository = transferInstructionRepository;
         this.operationalEventService = operationalEventService;
         this.settlementResultPublisher = settlementResultPublisher;
+        this.outflowResultPublisher = outflowResultPublisher;
     }
 
     public TransferInstructionResult prepareInstruction(Map<String, Object> message) {
@@ -227,6 +230,7 @@ public class TransferInstructionService {
                     TransferInstruction savedInstruction = transferInstructionRepository.save(instruction);
                     recordStatusEvent(savedInstruction, status, processInstanceId, eventDetails);
                     settlementResultPublisher.publish(savedInstruction, status, eventDetails);
+                    outflowResultPublisher.publish(savedInstruction, status, eventDetails);
                     return savedInstruction;
                 });
     }
